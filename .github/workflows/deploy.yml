@@ -64,7 +64,7 @@ jobs:
         # caso proprio, com instrucao de conserto, e nunca confundido com queda.
         run: |
           sleep 10
-          agente='selflabs-ci/1.0 (+https://github.com/self-labs/self-labs)'
+          agente='selflabs-ci/1.0'
           codigo=$(curl -sS -o /dev/null -w '%{http_code}' -A "$agente" --max-time 20 https://selflabs.org/)
           echo "selflabs.org respondeu $codigo"
 
@@ -76,7 +76,9 @@ jobs:
               echo "::error::A Cloudflare bloqueou o proprio CI (403), entao esta checagem nao conseguiu ver o site."
               echo "::error::Causa: Bot Fight Mode ligado na zona selflabs.org."
               echo "::error::Conserto: em Security, WAF, Custom rules, criar uma regra com acao Skip para"
-              echo "::error::(http.user_agent eq \"$agente\"), no mesmo formato da regra que ja existe para o JarvisAlexaSkill."
+              echo "::error::(http.user_agent eq \"selflabs-ci/1.0\" and http.host in {\"selflabs.org\" \"www.selflabs.org\"})"
+              echo "::error::pulando as fases http_ratelimit, http_request_firewall_managed e http_request_sbfm,"
+              echo "::error::no mesmo formato da regra Bypass Jarvis Alexa que ja existe na zona."
               exit 1
               ;;
             *)
