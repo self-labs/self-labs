@@ -10,19 +10,20 @@
  * carregar fonte nenhuma no renderizador, que e onde esse tipo de script
  * costuma quebrar em CI (fonte ausente vira retangulo vazio, sem erro).
  */
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Resvg } from '@resvg/resvg-js';
-import sharp from 'sharp';
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PUBLIC_DIR = path.join(ROOT, 'public');
-const DIST_DIR = path.join(ROOT, 'dist');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PUBLIC_DIR = path.join(ROOT, "public");
+const DIST_DIR = path.join(ROOT, "dist");
 
-const PETROLEO = '#20292E';
-const POCO = '#171E22';
-const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 6 0 3 7 9 7 H120';
+const PETROLEO = "#20292E";
+const POCO = "#171E22";
+const CICLO =
+  "M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 6 0 3 7 9 7 H120";
 
 /**
  * Recupera o miolo de um SVG derivado, sem a casca <svg>.
@@ -34,10 +35,15 @@ const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 
  * exatamente o que aconteceu com os icones antes desta correcao.
  */
 function corpoDe(arquivo) {
-  const svg = fs.readFileSync(path.join(ROOT, 'src/assets/brand', arquivo), 'utf8');
+  const svg = fs.readFileSync(
+    path.join(ROOT, "src/assets/brand", arquivo),
+    "utf8",
+  );
   const viewBox = svg.match(/viewBox="([^"]+)"/)?.[1];
   if (!viewBox) throw new Error(`${arquivo} sem viewBox`);
-  const interno = svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  const interno = svg
+    .replace(/^[\s\S]*?<svg[^>]*>/, "")
+    .replace(/<\/svg>\s*$/, "");
   const [minX, minY, w, h] = viewBox.split(/\s+/).map(Number);
   return { interno, viewBox, minX, minY, w, h };
 }
@@ -52,7 +58,7 @@ function encaixar({ x, y, escala, minX, minY }) {
 }
 
 function renderizar(svg, largura) {
-  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: largura } });
+  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: largura } });
   return resvg.render().asPng();
 }
 
@@ -62,7 +68,7 @@ function renderizar(svg, largura) {
  * ECG atravessando embaixo: a peca inteira e a linguagem da marca, sem texto.
  */
 function imagemOpenGraph() {
-  const { interno, minX, minY, w, h } = corpoDe('lockup.svg');
+  const { interno, minX, minY, w, h } = corpoDe("lockup.svg");
   const larguraAlvo = 820;
   const escala = larguraAlvo / w;
   const x = (1200 - larguraAlvo) / 2;
@@ -98,7 +104,7 @@ ${interno}
 
   <g mask="url(#mascaraEcg)" transform="translate(0 500)">
     <g fill="none" stroke="#3AF2A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7">
-${Array.from({ length: 10 }, (_, i) => `      <path d="${CICLO}" transform="translate(${i * 120} 0)"/>`).join('\n')}
+${Array.from({ length: 10 }, (_, i) => `      <path d="${CICLO}" transform="translate(${i * 120} 0)"/>`).join("\n")}
     </g>
   </g>
 
@@ -108,7 +114,7 @@ ${Array.from({ length: 10 }, (_, i) => `      <path d="${CICLO}" transform="tran
 
 /** Icone de app: o isotipo com respiro, sobre o petroleo. */
 function icone({ maskable = false } = {}) {
-  const { interno, minX, minY, w, h } = corpoDe('isotipo.svg');
+  const { interno, minX, minY, w, h } = corpoDe("isotipo.svg");
   // Icone maskable precisa de 40% de zona segura: o desenho encolhe para caber.
   const ocupacao = maskable ? 0.56 : 0.72;
   const escala = (512 * ocupacao) / Math.max(w, h);
@@ -159,31 +165,47 @@ function gravar(nome, conteudo) {
 
 async function main() {
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });
-  console.log('Gerando bitmaps de marca:');
+  console.log("Gerando bitmaps de marca:");
 
   // Open Graph. O PNG do resvg passa pelo sharp so para compressao.
-  const og = await sharp(renderizar(imagemOpenGraph(), 1200)).png({ quality: 90, compressionLevel: 9 }).toBuffer();
-  gravar('og.png', og);
+  const og = await sharp(renderizar(imagemOpenGraph(), 1200))
+    .png({ quality: 90, compressionLevel: 9 })
+    .toBuffer();
+  gravar("og.png", og);
 
   const iconeBase = icone();
-  const png512 = await sharp(renderizar(iconeBase, 512)).png({ compressionLevel: 9 }).toBuffer();
-  const png192 = await sharp(png512).resize(192, 192).png({ compressionLevel: 9 }).toBuffer();
-  const png180 = await sharp(png512).resize(180, 180).png({ compressionLevel: 9 }).toBuffer();
-  const png32 = await sharp(png512).resize(32, 32).png({ compressionLevel: 9 }).toBuffer();
+  const png512 = await sharp(renderizar(iconeBase, 512))
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  const png192 = await sharp(png512)
+    .resize(192, 192)
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  const png180 = await sharp(png512)
+    .resize(180, 180)
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  const png32 = await sharp(png512)
+    .resize(32, 32)
+    .png({ compressionLevel: 9 })
+    .toBuffer();
 
-  gravar('icon-512.png', png512);
-  gravar('icon-192.png', png192);
-  gravar('apple-touch-icon.png', png180);
-  gravar('favicon.ico', empacotarIco(png32, 32));
+  gravar("icon-512.png", png512);
+  gravar("icon-192.png", png192);
+  gravar("apple-touch-icon.png", png180);
+  gravar("favicon.ico", empacotarIco(png32, 32));
 
-  const maskable = await sharp(renderizar(icone({ maskable: true }), 512)).png({ compressionLevel: 9 }).toBuffer();
-  gravar('icon-maskable-512.png', maskable);
+  const maskable = await sharp(renderizar(icone({ maskable: true }), 512))
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  gravar("icon-maskable-512.png", maskable);
 
   // O favicon.svg e o manifest sao estaticos: copiados de public/ para dist/.
   if (fs.existsSync(DIST_DIR)) {
-    for (const arquivo of ['favicon.svg', 'site.webmanifest', 'robots.txt']) {
+    for (const arquivo of ["favicon.svg", "site.webmanifest", "robots.txt"]) {
       const origem = path.join(PUBLIC_DIR, arquivo);
-      if (fs.existsSync(origem)) fs.copyFileSync(origem, path.join(DIST_DIR, arquivo));
+      if (fs.existsSync(origem))
+        fs.copyFileSync(origem, path.join(DIST_DIR, arquivo));
     }
   }
 }

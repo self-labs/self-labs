@@ -12,31 +12,31 @@
  * Este script resolve os tres e ainda numera cada trilha por distancia do centro
  * (atributo style="--i"), que e o que permite a cascata de energizacao no hero.
  */
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = path.join(ROOT, 'src/assets/brand/selflabs-source.svg');
-const BRAND_DIR = path.join(ROOT, 'src/assets/brand');
-const PUBLIC_DIR = path.join(ROOT, 'public');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const SOURCE = path.join(ROOT, "src/assets/brand/selflabs-source.svg");
+const BRAND_DIR = path.join(ROOT, "src/assets/brand");
+const PUBLIC_DIR = path.join(ROOT, "public");
 
 /** Mapa das classes do Corel para os tokens de cor da marca. */
 const CLASS_MAP = {
   fil0: null, // fundo petroleo, descartado
-  fil2: 'trace-cyan', // #0BE4EB
-  fil5: 'trace-teal', // #10E8D2
-  fil4: 'trace-aqua', // #2CEBCE
-  fil1: 'trace-mint', // #3AF2A8
-  fil3: 'trace-green', // #4BED9B
+  fil2: "trace-cyan", // #0BE4EB
+  fil5: "trace-teal", // #10E8D2
+  fil4: "trace-aqua", // #2CEBCE
+  fil1: "trace-mint", // #3AF2A8
+  fil3: "trace-green", // #4BED9B
 };
 
 const PALETTE = {
-  'trace-cyan': '#0BE4EB',
-  'trace-teal': '#10E8D2',
-  'trace-aqua': '#2CEBCE',
-  'trace-mint': '#3AF2A8',
-  'trace-green': '#4BED9B',
+  "trace-cyan": "#0BE4EB",
+  "trace-teal": "#10E8D2",
+  "trace-aqua": "#2CEBCE",
+  "trace-mint": "#3AF2A8",
+  "trace-green": "#4BED9B",
 };
 
 /**
@@ -52,7 +52,7 @@ function pathBBox(d) {
   let cy = 0;
   let sx = 0;
   let sy = 0;
-  let cmd = '';
+  let cmd = "";
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -71,7 +71,7 @@ function pathBBox(d) {
     const rel = cmd === cmd.toLowerCase();
     const op = cmd.toUpperCase();
 
-    if (op === 'M') {
+    if (op === "M") {
       const x = num();
       const y = num();
       cx = rel ? cx + x : x;
@@ -79,22 +79,22 @@ function pathBBox(d) {
       sx = cx;
       sy = cy;
       mark(cx, cy);
-      cmd = rel ? 'l' : 'L'; // um M seguido de pares vira lineto implicito
-    } else if (op === 'L') {
+      cmd = rel ? "l" : "L"; // um M seguido de pares vira lineto implicito
+    } else if (op === "L") {
       const x = num();
       const y = num();
       cx = rel ? cx + x : x;
       cy = rel ? cy + y : y;
       mark(cx, cy);
-    } else if (op === 'H') {
+    } else if (op === "H") {
       const x = num();
       cx = rel ? cx + x : x;
       mark(cx, cy);
-    } else if (op === 'V') {
+    } else if (op === "V") {
       const y = num();
       cy = rel ? cy + y : y;
       mark(cx, cy);
-    } else if (op === 'C') {
+    } else if (op === "C") {
       const [a, b, c, d2, e, f] = [num(), num(), num(), num(), num(), num()];
       const x = rel ? cx + e : e;
       const y = rel ? cy + f : f;
@@ -103,7 +103,7 @@ function pathBBox(d) {
       mark(x, y);
       cx = x;
       cy = y;
-    } else if (op === 'S' || op === 'Q') {
+    } else if (op === "S" || op === "Q") {
       const [a, b, c, d2] = [num(), num(), num(), num()];
       const x = rel ? cx + c : c;
       const y = rel ? cy + d2 : d2;
@@ -111,20 +111,24 @@ function pathBBox(d) {
       mark(x, y);
       cx = x;
       cy = y;
-    } else if (op === 'T') {
+    } else if (op === "T") {
       const a = num();
       const b = num();
       cx = rel ? cx + a : a;
       cy = rel ? cy + b : b;
       mark(cx, cy);
-    } else if (op === 'A') {
-      num(); num(); num(); num(); num();
+    } else if (op === "A") {
+      num();
+      num();
+      num();
+      num();
+      num();
       const e = num();
       const f = num();
       cx = rel ? cx + e : e;
       cy = rel ? cy + f : f;
       mark(cx, cy);
-    } else if (op === 'Z') {
+    } else if (op === "Z") {
       cx = sx;
       cy = sy;
     } else {
@@ -143,8 +147,8 @@ function extractGroup(svg, id) {
   let i = start;
   let depth = 0;
   while (i < svg.length) {
-    const open = svg.indexOf('<g', i);
-    const close = svg.indexOf('</g>', i);
+    const open = svg.indexOf("<g", i);
+    const close = svg.indexOf("</g>", i);
     if (close < 0) break;
     if (open >= 0 && open < close) {
       depth++;
@@ -160,11 +164,14 @@ function extractGroup(svg, id) {
 
 /** Le os paths de um trecho e os anota com bbox e classe de marca. */
 function readPaths(chunk) {
-  return [...chunk.matchAll(/<path class="([^"]*)" d="([^"]+)"\s*\/>/g)].map(([, cls, d]) => {
-    const token = CLASS_MAP[cls.trim()];
-    if (!token) throw new Error(`classe "${cls}" sem cor de marca correspondente`);
-    return { token, d, box: pathBBox(d) };
-  });
+  return [...chunk.matchAll(/<path class="([^"]*)" d="([^"]+)"\s*\/>/g)].map(
+    ([, cls, d]) => {
+      const token = CLASS_MAP[cls.trim()];
+      if (!token)
+        throw new Error(`classe "${cls}" sem cor de marca correspondente`);
+      return { token, d, box: pathBBox(d) };
+    },
+  );
 }
 
 function unionBox(paths) {
@@ -208,67 +215,68 @@ function renderTraces(paths, box, { stagger }) {
         stagger ? `style="--i:${rank}"` : null,
         `d="${p.d}"`,
       ].filter(Boolean);
-      return `  <path ${attrs.join(' ')}/>`;
+      return `  <path ${attrs.join(" ")}/>`;
     })
-    .join('\n');
+    .join("\n");
 }
 
-function styleBlock(indent = '  ') {
+function styleBlock(indent = "  ") {
   const rules = Object.entries(PALETTE)
     .map(([token, hex]) => `${indent}  .sl-${token} { fill: ${hex}; }`)
-    .join('\n');
+    .join("\n");
   return `${indent}<style>\n${rules}\n${indent}</style>`;
 }
 
-function writeSvg(file, { viewBox, body, title, extraAttrs = '' }) {
+function writeSvg(file, { viewBox, body, title, extraAttrs = "" }) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" role="img" aria-label="${title}"${extraAttrs}>
 ${styleBlock()}
 ${body}
 </svg>
 `;
-  fs.writeFileSync(file, svg, 'utf8');
+  fs.writeFileSync(file, svg, "utf8");
   const kb = (Buffer.byteLength(svg) / 1024).toFixed(1);
-  console.log(`  ${path.relative(ROOT, file).replace(/\\/g, '/')}  ${kb} KB`);
+  console.log(`  ${path.relative(ROOT, file).replace(/\\/g, "/")}  ${kb} KB`);
 }
 
 function main() {
-  const source = fs.readFileSync(SOURCE, 'utf8');
+  const source = fs.readFileSync(SOURCE, "utf8");
   fs.mkdirSync(BRAND_DIR, { recursive: true });
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 
-  console.log('Derivando ativos de marca a partir do export do CorelDRAW:');
+  console.log("Derivando ativos de marca a partir do export do CorelDRAW:");
 
   // --- Isotipo: a impressao digital sozinha, com a cascata numerada ---
-  const markPaths = readPaths(extractGroup(source, 'Digital'));
+  const markPaths = readPaths(extractGroup(source, "Digital"));
   const markBox = unionBox(markPaths);
-  const pad = markBox.maxX - markBox.minX > 0 ? (markBox.maxX - markBox.minX) * 0.02 : 0;
+  const pad =
+    markBox.maxX - markBox.minX > 0 ? (markBox.maxX - markBox.minX) * 0.02 : 0;
   const markViewBox = [
     (markBox.minX - pad).toFixed(2),
     (markBox.minY - pad).toFixed(2),
     (markBox.maxX - markBox.minX + pad * 2).toFixed(2),
     (markBox.maxY - markBox.minY + pad * 2).toFixed(2),
-  ].join(' ');
+  ].join(" ");
 
-  writeSvg(path.join(BRAND_DIR, 'isotipo.svg'), {
+  writeSvg(path.join(BRAND_DIR, "isotipo.svg"), {
     viewBox: markViewBox,
     body: renderTraces(markPaths, markBox, { stagger: true }),
-    title: 'Self-Labs',
+    title: "Self-Labs",
   });
 
   // --- Wordmark: SELF-LABS isolado, para navbar, rodape e assinatura ---
-  const wordPaths = readPaths(extractGroup(source, 'Self-Labs'));
+  const wordPaths = readPaths(extractGroup(source, "Self-Labs"));
   const wordBox = unionBox(wordPaths);
   const wordViewBox = [
     wordBox.minX.toFixed(2),
     wordBox.minY.toFixed(2),
     (wordBox.maxX - wordBox.minX).toFixed(2),
     (wordBox.maxY - wordBox.minY).toFixed(2),
-  ].join(' ');
+  ].join(" ");
 
-  writeSvg(path.join(BRAND_DIR, 'wordmark.svg'), {
+  writeSvg(path.join(BRAND_DIR, "wordmark.svg"), {
     viewBox: wordViewBox,
     body: renderTraces(wordPaths, wordBox, { stagger: false }),
-    title: 'SELF-LABS',
+    title: "SELF-LABS",
   });
 
   // --- Lockup horizontal: o que faltava para caber numa navbar ---
@@ -299,17 +307,17 @@ function main() {
     `scale(${wordScale.toFixed(6)}) ` +
     `translate(${(-wordBox.minX).toFixed(2)} ${(-wordBox.minY).toFixed(2)})`;
 
-  writeSvg(path.join(BRAND_DIR, 'lockup.svg'), {
+  writeSvg(path.join(BRAND_DIR, "lockup.svg"), {
     viewBox: `0 0 ${lockW.toFixed(2)} ${lockH.toFixed(2)}`,
     body: [
       `  <g transform="${markShift}">`,
-      renderTraces(markPaths, markBox, { stagger: false }).replace(/^/gm, '  '),
-      '  </g>',
+      renderTraces(markPaths, markBox, { stagger: false }).replace(/^/gm, "  "),
+      "  </g>",
       `  <g transform="${wordShift}">`,
-      renderTraces(wordPaths, wordBox, { stagger: false }).replace(/^/gm, '  '),
-      '  </g>',
-    ].join('\n'),
-    title: 'Self-Labs',
+      renderTraces(wordPaths, wordBox, { stagger: false }).replace(/^/gm, "  "),
+      "  </g>",
+    ].join("\n"),
+    title: "Self-Labs",
   });
 
   // --- Favicon: o isotipo dentro de um quadrado petroleo com respiro ---
@@ -319,20 +327,26 @@ function main() {
   const faviconSize = Math.max(markW, markH) + faviconPad * 2;
   const faviconShift = `translate(${((faviconSize - markW) / 2 - markBox.minX).toFixed(2)} ${((faviconSize - markH) / 2 - markBox.minY).toFixed(2)})`;
 
-  writeSvg(path.join(PUBLIC_DIR, 'favicon.svg'), {
+  writeSvg(path.join(PUBLIC_DIR, "favicon.svg"), {
     viewBox: `0 0 ${faviconSize.toFixed(2)} ${faviconSize.toFixed(2)}`,
     body: [
       `  <rect width="${faviconSize.toFixed(2)}" height="${faviconSize.toFixed(2)}" rx="${(faviconSize * 0.18).toFixed(2)}" fill="#20292E"/>`,
       `  <g transform="${faviconShift}">`,
-      renderTraces(markPaths, markBox, { stagger: false }).replace(/^/gm, '  '),
-      '  </g>',
-    ].join('\n'),
-    title: 'Self-Labs',
+      renderTraces(markPaths, markBox, { stagger: false }).replace(/^/gm, "  "),
+      "  </g>",
+    ].join("\n"),
+    title: "Self-Labs",
   });
 
-  console.log(`\nIsotipo  ${markW.toFixed(0)} x ${markH.toFixed(0)} (${(markW / markH).toFixed(3)}:1), ${markPaths.length} trilhas`);
-  console.log(`Wordmark ${wordW.toFixed(0)} x ${wordH.toFixed(0)} (${(wordW / wordH).toFixed(3)}:1), ${wordPaths.length} letras`);
-  console.log(`Lockup   ${lockW.toFixed(0)} x ${lockH.toFixed(0)} (${(lockW / lockH).toFixed(3)}:1)`);
+  console.log(
+    `\nIsotipo  ${markW.toFixed(0)} x ${markH.toFixed(0)} (${(markW / markH).toFixed(3)}:1), ${markPaths.length} trilhas`,
+  );
+  console.log(
+    `Wordmark ${wordW.toFixed(0)} x ${wordH.toFixed(0)} (${(wordW / wordH).toFixed(3)}:1), ${wordPaths.length} letras`,
+  );
+  console.log(
+    `Lockup   ${lockW.toFixed(0)} x ${lockH.toFixed(0)} (${(lockW / lockH).toFixed(3)}:1)`,
+  );
 }
 
 main();
