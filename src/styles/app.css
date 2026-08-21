@@ -95,13 +95,24 @@ html {
    */
   scrollbar-width: none;
 
-  /*
-   * Encaixe por proximidade, nunca obrigatorio. Com "mandatory" uma secao mais
-   * alta que a tela, como a grade de dezenove projetos, prenderia o leitor no
-   * comeco dela: qualquer parada no meio seria puxada de volta. Com "proximity"
-   * o encaixe so acontece quando a rolagem ja parou perto de um limite.
-   */
-  scroll-snap-type: y proximity;
+}
+
+/*
+ * Encaixe de rolagem, apenas em tela grande e apenas com ponteiro fino.
+ *
+ * Duas razoes para excluir o celular. A primeira e de valor: numa tela de 390px
+ * toda secao e varias vezes mais alta que a janela, entao o ponto de encaixe
+ * quase nunca esta ao alcance e o recurso nao entrega nada. A segunda e de
+ * defeito: em navegador movel o encaixe disputa com a rolagem suave em curso e o
+ * resultado tipico e a pagina saltar de uma vez, que foi a queixa relatada.
+ *
+ * Por proximidade, nunca obrigatorio: com "mandatory" a grade de dezenove
+ * projetos prenderia o leitor na primeira tela dela.
+ */
+@media (min-width: 60rem) and (pointer: fine) {
+  html {
+    scroll-snap-type: y proximity;
+  }
 }
 
 body {
@@ -242,12 +253,18 @@ ol {
   padding-block: var(--s9);
 
   /*
-   * Ponto de encaixe da navegacao. O alinhamento e "start" e a margem desconta
-   * o cabecalho sticky, para a secao parar com o rotulo visivel e nao colado
-   * embaixo dele.
+   * A margem desconta o cabecalho sticky, para a secao parar com o rotulo
+   * visivel e nao colado embaixo dele. Vale para qualquer tela, porque a
+   * navegacao por ancora existe em todas.
    */
-  scroll-snap-align: start;
   scroll-margin-top: var(--folga-ancora);
+}
+
+/* O ponto de encaixe so existe onde o encaixe esta ligado. */
+@media (min-width: 60rem) and (pointer: fine) {
+  .secao {
+    scroll-snap-align: start;
+  }
 }
 
 .secao + .secao {

@@ -54,10 +54,33 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Conferir se o site respondeu
-        # Publicar sem erro nao prova que o apex esta servindo. Uma checagem de
-        # dez segundos separa "o deploy rodou" de "o site esta no ar".
+        # Publicar sem erro nao prova que o apex esta servindo. Esta checagem
+        # separa "o deploy rodou" de "o site esta no ar".
+        #
+        # O User-Agent identifica o CI porque a zona roda com Bot Fight Mode
+        # ligado, e sem uma regra de skip para este agente a Cloudflare devolve
+        # 403 ao runner antes de a requisicao chegar no Worker. Esse 403 ja
+        # derrubou dois deploys que estavam perfeitos, entao ele e tratado como
+        # caso proprio, com instrucao de conserto, e nunca confundido com queda.
         run: |
           sleep 10
-          codigo=$(curl -s -o /dev/null -w '%{http_code}' https://selflabs.org/)
+          agente='selflabs-ci/1.0 (+https://github.com/self-labs/self-labs)'
+          codigo=$(curl -sS -o /dev/null -w '%{http_code}' -A "$agente" --max-time 20 https://selflabs.org/)
           echo "selflabs.org respondeu $codigo"
-          test "$codigo" = "200"
+
+          case "$codigo" in
+            200)
+              echo "Site no ar."
+              ;;
+            403)
+              echo "::error::A Cloudflare bloqueou o proprio CI (403), entao esta checagem nao conseguiu ver o site."
+              echo "::error::Causa: Bot Fight Mode ligado na zona selflabs.org."
+              echo "::error::Conserto: em Security, WAF, Custom rules, criar uma regra com acao Skip para"
+              echo "::error::(http.user_agent eq \"$agente\"), no mesmo formato da regra que ja existe para o JarvisAlexaSkill."
+              exit 1
+              ;;
+            *)
+              echo "::error::selflabs.org respondeu $codigo. O deploy subiu, mas a entrega falhou."
+              exit 1
+              ;;
+          esac
