@@ -1,0 +1,30 @@
+{
+  "order": 16,
+  "featured": false,
+  "category": "infra",
+  "status": "ativo",
+  "designator": "Q10",
+  "repo": "https://github.com/CaTeIM/stirling-pdf",
+  "closed": false,
+  "stack": [
+    "GitHub Actions",
+    "Docker buildx (amd64 + arm64)",
+    "ubuntu-24.04-arm runners",
+    "Docker Hub",
+    "Docker Compose",
+    "Portainer",
+    "Cloudflare Access",
+    "Dependabot",
+    "Orange Pi 5"
+  ],
+  "pt": {
+    "name": "cateim/stirling-pdf",
+    "pitch": "Gera toda semana uma imagem Docker 100% MIT do Stirling-PDF, com as mais de 50 ferramentas de PDF e sem o teto de 5 usuários da edição paga. É para quem faz self-hosting e quer juntar, dividir, comprimir, assinar e passar OCR nos próprios arquivos, com a autenticação empurrada para a borda.",
+    "note": "O repositório não tem Dockerfile próprio, e isso é deliberado: o CI faz checkout do upstream na tag da release e builda o Dockerfile oficial deles com --build-arg STIRLING_FLAVOR=core, então bump de imagem base e mudança de dependência vêm de graça, sem patch e sem burlar licença. O job prepare roda sem nenhum secret e pula o build quando aquela versão já existe no Docker Hub. O build é nativo por arquitetura, arm64 no runner ubuntu-24.04-arm e amd64 no ubuntu-latest, cada um empurrado por digest e unido no fim com buildx imagetools, em vez de emular ARM com QEMU. O CLAUDE.md registra a fronteira de confiança com honestidade incomum: buildar código de terceiro toda semana significa que um upstream comprometido vira imagem comprometida, daí actions pinadas por SHA, permissions contents: read, persist-credentials false e token do Docker Hub restrito a um único repositório. O mesmo documento admite que DISABLE_ADDITIONAL_FEATURES=true na imagem oficial daria o mesmo resultado prático."
+  },
+  "en": {
+    "name": "cateim/stirling-pdf",
+    "pitch": "Builds a 100% MIT Docker image of Stirling-PDF every week, with all 50 plus PDF tools and without the 5 user cap the paid edition imposes. It is for self-hosters who want to merge, split, compress, sign and OCR their own files, with authentication pushed out to the edge.",
+    "note": "The repo has no Dockerfile of its own, and that is deliberate: the CI checks out upstream at the release tag and builds their official Dockerfile with --build-arg STIRLING_FLAVOR=core, so base image bumps and dependency changes come for free, with no patching and no license workaround. The prepare job runs without any secret and skips the build when that version already exists on Docker Hub. Builds are native per architecture, arm64 on the ubuntu-24.04-arm runner and amd64 on ubuntu-latest, each pushed by digest and joined at the end with buildx imagetools, instead of emulating ARM under QEMU. The CLAUDE.md states the trust boundary with unusual honesty: building someone else's code every week means a compromised upstream becomes a compromised image, hence SHA pinned actions, permissions contents: read, persist-credentials false and a Docker Hub token scoped to a single repository. The same document admits DISABLE_ADDITIONAL_FEATURES=true on the official image would give the same practical result."
+  }
+}

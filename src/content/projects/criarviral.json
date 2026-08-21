@@ -1,0 +1,29 @@
+{
+  "order": 14,
+  "featured": false,
+  "category": "produto",
+  "status": "prelancamento",
+  "designator": "Q8",
+  "closed": true,
+  "stack": [
+    "Next.js 16",
+    "TypeScript",
+    "PostgreSQL + Prisma 7",
+    "Redis + BullMQ",
+    "FFmpeg",
+    "Cloudflare R2",
+    "Mercado Pago Assinaturas",
+    "Auth.js v5",
+    "Docker + Portainer"
+  ],
+  "pt": {
+    "name": "CriarViral",
+    "pitch": "Recebe alguns clipes de gancho, corpo e CTA e devolve dezenas de vídeos curtos prontos para postar, um por combinação. É para criador e afiliado que precisa de volume diário e não vai montar cada combinação na mão.",
+    "note": "O pipeline de render tem dois estágios, e é isso que segura a margem. Cada asset é normalizado uma vez só (mesmo canvas, setsar=1, 30 fps, yuv420p, loudnorm, H.264 CRF 20, GOP fixo com -g 60 -keyint_min 60 -sc_threshold 0), o que custa N+M+K encodes. Depois cada combinação sai de um ffmpeg -f concat -c copy, sem reencode nenhum, porque todos os segmentos já compartilham parâmetros idênticos. O custo de CPU passa a escalar com o número de arquivos enviados, não com o número de vídeos gerados, e os segmentos normalizados ainda ficam cacheados por hash da fonte. O worker de render fica atrás de uma interface de fila, justamente para trocar o FFmpeg da VPS por outro executor sem reescrever o app."
+  },
+  "en": {
+    "name": "CriarViral",
+    "pitch": "Takes a handful of hook, body and CTA clips and hands back dozens of short videos ready to post, one per combination. It is for creators and affiliates who need daily volume and are not going to assemble each cut by hand.",
+    "note": "The render pipeline has two stages, and that is what protects the margin. Each asset is normalized exactly once (same canvas, setsar=1, 30 fps, yuv420p, loudnorm, H.264 CRF 20, fixed GOP with -g 60 -keyint_min 60 -sc_threshold 0), costing N+M+K encodes. Every combination then comes out of ffmpeg -f concat -c copy with no reencode at all, because the segments already share identical parameters. CPU cost scales with how many files were uploaded, not with how many videos come out, and normalized segments are cached by source hash on top of that. The render worker sits behind a queue interface, precisely so FFmpeg on a VPS can be swapped for another executor without rewriting the app."
+  }
+}

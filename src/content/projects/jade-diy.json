@@ -1,0 +1,29 @@
+{
+  "order": 2,
+  "featured": true,
+  "category": "firmware",
+  "status": "ativo",
+  "designator": "U2",
+  "org": "CaTeIM",
+  "repo": "https://github.com/CaTeIM/jade-diy",
+  "closed": false,
+  "stack": [
+    "ESP-IDF 5.4 / 5.5.4",
+    "ESP32 e ESP32-S3",
+    "LILYGO T-Display e Waveshare S3 Touch LCD 2",
+    "Secure Boot V1 e V2",
+    "Batch script Windows",
+    "esp-web-tools (Web Serial)",
+    "GitHub Actions"
+  ],
+  "pt": {
+    "name": "Jade DIY",
+    "pitch": "Entrega o firmware Blockstream Jade compilado e assinado com Secure Boot para placas ESP32 de prateleira, junto com os tutoriais em português que fazem essa placa virar uma hardware wallet Bitcoin que funciona de verdade no Windows, no Android e no iOS. Quem monta a própria carteira não fica sem binário confiável nem sem documentação.",
+    "note": "O firmware oficial não se comporta numa T-Display com CH9102F: abrir a serial pelo Blockstream Green ou pelo SideSwap trava o GPIO0 em nível baixo e mata o botão de Boot. Marcar Disable ModemHandShake no driver resolve até o primeiro app que sobrescreve a configuração, então a resposta tinha que vir do circuito: o RTS sai do CH9102F, passa pelo resistor R19 de 10k e chega na base do transistor Q2, cujo coletor puxa o GPIO0, e o driver moderno segura o RTS em nível DC constante, saturando essa base para sempre. Trocar o R19 por um capacitor cerâmico de 100nF SMD 0603 converte o acoplamento de DC para AC: o nível fixo é bloqueado e os pulsos rápidos de reset e de boot continuam passando. Bug de software resolvido no ferro de solda. As chaves .pem de Secure Boot são a primeira linha do .gitignore e nunca foram commitadas, porque perder a chave inutiliza para sempre toda placa já travada com ela."
+  },
+  "en": {
+    "name": "Jade DIY",
+    "pitch": "Ships Blockstream Jade firmware, built and Secure Boot signed, for off-the-shelf ESP32 boards, plus the Portuguese guides that turn one of those boards into a Bitcoin hardware wallet that actually works on Windows, Android and iOS. Nobody assembling their own wallet is left without a trustworthy binary or without documentation.",
+    "note": "The stock firmware misbehaves on a T-Display with the CH9102F: opening the serial port from Blockstream Green or SideSwap pins GPIO0 low and kills the Boot button. Ticking Disable ModemHandShake in the driver holds until the first app that overrides it, so the answer had to come from the circuit: RTS leaves the CH9102F, runs through the 10k R19 into the base of Q2, whose collector pulls GPIO0 down, and the modern driver holds RTS at a constant DC level, saturating that base for good. Swapping R19 for a 100nF SMD 0603 ceramic capacitor turns the coupling from DC to AC: the steady level is blocked, the fast reset and boot pulses still get through. A software bug fixed with a soldering iron. The Secure Boot .pem keys are the first line of the .gitignore and were never committed, because losing that key bricks every board already fused to it."
+  }
+}

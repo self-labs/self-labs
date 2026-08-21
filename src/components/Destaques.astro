@@ -1,0 +1,53 @@
+---
+/**
+ * Os seis cards grandes. Cada um traz a nota de campo aberta, porque e o achado
+ * tecnico que sustenta o projeto e enterra-lo numa subpagina desperdicaria.
+ */
+import { getCollection } from 'astro:content';
+import CardProjeto from './CardProjeto.astro';
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const locale = Astro.props.locale;
+const t = ui[locale].destaques;
+
+const destaques = (await getCollection('projects', ({ data }) => data.featured)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+<section class="secao" id="projetos">
+  <div class="casca">
+    <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+    <h2 class="titulo-secao">{t.titulo}</h2>
+    <p class="subtitulo-secao">{t.subtitulo}</p>
+
+    <div class="destaques-grade">
+      {destaques.map((projeto) => <CardProjeto projeto={projeto} locale={locale} variante="destaque" />)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .destaques-grade {
+    margin-block-start: var(--s7);
+    display: grid;
+    /*
+     * minmax(0, 1fr) e nao o "auto" implicito: por padrao uma coluna de grid
+     * nunca encolhe abaixo da largura minima do conteudo, entao uma etiqueta
+     * comprida na lista de stack empurrava o card para fora da tela.
+     */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s4);
+  }
+
+  @media (min-width: 52rem) {
+    .destaques-grade {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s5);
+    }
+  }
+</style>

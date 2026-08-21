@@ -1,0 +1,31 @@
+{
+  "order": 8,
+  "featured": false,
+  "category": "firmware",
+  "status": "producao",
+  "designator": "Q2",
+  "org": "CaTeIM",
+  "link": "https://cateim.github.io/jadediyflasher/",
+  "repo": "https://github.com/CaTeIM/jadediyflasher",
+  "closed": false,
+  "stack": [
+    "TypeScript",
+    "esptool-js",
+    "Web Serial API",
+    "Rollup",
+    "ESLint + Prettier",
+    "GitHub Actions",
+    "GitHub Pages",
+    "PowerShell e Batch"
+  ],
+  "pt": {
+    "name": "Jade DIY Flasher",
+    "pitch": "Grava o firmware da Jade DIY direto do navegador: a pessoa escolhe a placa, escolhe a versão e clica uma vez. Não pede driver, nem Python, nem ESP-IDF, nem linha de comando. Quem comprou uma carteira montada consegue atualizar sozinho, em vez de deixar a placa parada num firmware velho.",
+    "note": "O flasher grava quatro binários em sequência e os endereços não são os mesmos nas duas famílias de chip: no ESP32 vão bootloader, tabela de partições, ota_data_initial e jade em 0x1000, 0x9000, 0xE000 e 0x10000, e no ESP32-S3 os mesmos quatro arquivos em 0x0, 0x8000, 0x1a000 e 0x20000. Errar um endereço não dá erro de gravação, dá placa que não sobe, então a escolha da placa decide a tabela inteira. Publicar uma versão nova também não é editar HTML na mão: o update_index.ps1 e o delete_index.ps1 injetam ou removem a entrada direto no index.js lendo o arquivo como UTF-8, e o deploy_firmware.bat copia os binários do build local. O contador público de gravações usa a API do Abacus, ou seja, telemetria de uso sem manter backend nenhum, e o site continua inteiramente estático no GitHub Pages."
+  },
+  "en": {
+    "name": "Jade DIY Flasher",
+    "pitch": "Flashes Jade DIY firmware straight from the browser: pick the board, pick the version, click once. No driver, no Python, no ESP-IDF, no command line. Anyone who bought an assembled wallet can update it alone instead of leaving the board stuck on old firmware.",
+    "note": "The flasher writes four binaries in sequence, and the offsets differ between the two chip families: the ESP32 takes bootloader, partition table, ota_data_initial and jade at 0x1000, 0x9000, 0xE000 and 0x10000, while the ESP32-S3 takes the same four files at 0x0, 0x8000, 0x1a000 and 0x20000. A wrong address does not fail the write, it produces a board that will not boot, so the board picker decides the whole table. Shipping a new version is not hand editing HTML either: update_index.ps1 and delete_index.ps1 inject or drop the entry directly in index.js, reading the file as UTF-8, and deploy_firmware.bat copies the binaries out of the local build. The public flash counter runs on the Abacus API, usage telemetry with no backend to keep alive, so the site stays fully static on GitHub Pages."
+  }
+}

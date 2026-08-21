@@ -1,0 +1,30 @@
+{
+  "order": 7,
+  "featured": false,
+  "category": "produto",
+  "status": "parado",
+  "designator": "Q1",
+  "org": "atlasdao",
+  "closed": true,
+  "stack": [
+    "Node.js",
+    "Express 4",
+    "PostgreSQL 15",
+    "AES-256-CBC",
+    "JWT + TOTP",
+    "Melhor Envio API",
+    "bitcoinjs-lib",
+    "liquidjs-lib + slip77",
+    "PM2 + Cloudflare Tunnel"
+  ],
+  "pt": {
+    "name": "Atlas Logistics",
+    "pitch": "Esconde o endereço real de quem envia e de quem recebe uma encomenda, quebrando a entrega em saltos entre intermediários, cada salto com etiqueta e código próprios. A loja despacha para o primeiro peer e o endereço final do cliente só é decifrado no último salto. Para loja e comprador que não querem o próprio endereço circulando por transportadora e marketplace.",
+    "note": "Onion routing aplicado a encomenda física: não existe um hash único para a viagem inteira, cada salto gera um código ATL-XXXXX diferente e o endereço final só é decifrado no último, just in time. A etiqueta sai sempre com 'Atlas Logistics' no nome do remetente, mas com o CPF e o CEP reais do peer que está postando, porque a Melhor Envio rejeita from.document igual a to.document. A escolha do intermediário é feita em Node com crypto.randomInt() sobre um pool de cinco candidatos por prefixo de CEP, justamente para que o banco nunca registre a seleção final. Os últimos commits são de quem levou dinheiro a sério: parar de guardar a blinding key da Liquid em texto puro, exigir confirmação on-chain no pagamento em BTC, falhar fechado quando o lock do pool de endereços não está disponível, e um job de reconciliação contra cobrança duplicada no Pix."
+  },
+  "en": {
+    "name": "Atlas Logistics",
+    "pitch": "Hides the real address of both the sender and the receiver of a parcel by breaking the delivery into hops between intermediaries, each hop carrying its own label and its own code. The shop ships to the first peer, and the customer's final address is only decrypted at the last hop. For shops and buyers who would rather not have their address riding along on a carrier's label.",
+    "note": "Onion routing applied to a physical parcel: there is no single hash for the whole trip, every hop mints its own ATL-XXXXX code, and the final address is decrypted only at the last one, just in time. The label always carries 'Atlas Logistics' as the sender name but the real CPF and postcode of the peer doing the drop off, because Melhor Envio rejects a from.document equal to to.document. The intermediary is picked in Node with crypto.randomInt() over a pool of five candidates per postcode prefix, precisely so the database never records the final choice. The closing commits read like someone who took real money seriously: stop storing the Liquid blinding key in plaintext, require an on-chain confirmation for BTC payments, fail closed when the address pool lock is unavailable, and a reconciliation job against double charging on Pix."
+  }
+}

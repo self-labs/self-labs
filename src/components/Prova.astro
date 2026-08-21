@@ -1,0 +1,143 @@
+---
+/**
+ * Barra de leitura: quatro numeros logo abaixo do hero.
+ *
+ * Nenhum deles e digitado a mao, e essa e a razao da secao existir. Numero
+ * chumbado em landing page envelhece em silencio e vira mentira em tres meses.
+ *
+ *   commits e PRs   src/data/stats.json, gravado por scripts/fetch-stats.mjs
+ *   em producao     contado nos proprios arquivos de projeto
+ *   meses           calculado da data do repositorio mais antigo ate o build
+ */
+import { getCollection } from 'astro:content';
+import { ui, type Locale } from '../i18n/ui';
+import stats from '../data/stats.json';
+
+interface Props {
+  locale: Locale;
+}
+
+const locale = Astro.props.locale;
+const t = ui[locale].prova;
+
+const projetos = await getCollection('projects');
+
+/** Serviços realmente no ar sob o domínio, contados na vitrine. */
+const emProducao = projetos.filter(
+  (p) => p.data.link?.includes('selflabs.org') && (p.data.status === 'producao' || p.data.status === 'entregue'),
+).length;
+
+/** Meses cheios entre o primeiro repositório público e a data deste build. */
+const inicio = new Date(`${stats.inicioOperacao}T00:00:00Z`);
+const agora = new Date();
+const meses =
+  (agora.getUTCFullYear() - inicio.getUTCFullYear()) * 12 +
+  (agora.getUTCMonth() - inicio.getUTCMonth()) -
+  (agora.getUTCDate() < inicio.getUTCDate() ? 1 : 0);
+
+const dataLeitura = new Intl.DateTimeFormat(locale === 'pt' ? 'pt-BR' : 'en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${stats.atualizadoEm}T00:00:00Z`));
+
+const itens = [
+  {
+    valor: String(stats.commits),
+    unidade: t.itens.commits.unidade,
+    legenda: t.itens.commits.legenda(stats.reposPublicos),
+  },
+  { valor: String(stats.prsExternos), unidade: t.itens.prs.unidade, legenda: t.itens.prs.legenda },
+  { valor: String(emProducao), unidade: t.itens.producao.unidade, legenda: t.itens.producao.legenda },
+  { valor: String(meses), unidade: t.itens.meses.unidade, legenda: t.itens.meses.legenda },
+];
+---
+
+<section class="prova">
+  <div class="casca">
+    <h2 class="oculto-visual">{t.rotulo}</h2>
+    <dl class="prova-grade">
+      {
+        itens.map((item) => (
+          <div class="prova-item">
+            <dt class="prova-topo">
+              <span class="prova-valor">{item.valor}</span>
+              <span class="prova-unidade">{item.unidade}</span>
+            </dt>
+            <dd class="prova-legenda">{item.legenda}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="prova-nota">{t.nota(dataLeitura)}</p>
+  </div>
+</section>
+
+<style>
+  .prova {
+    position: relative;
+    z-index: 1;
+    padding-block: var(--s7);
+  }
+
+  .prova-grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s5) var(--s4);
+    margin: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .prova-grade {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--s6);
+    }
+  }
+
+  .prova-item {
+    padding-inline-start: var(--s4);
+    border-inline-start: 2px solid var(--linha);
+  }
+
+  .prova-topo {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+
+  .prova-valor {
+    font-family: var(--display);
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+    font-weight: 700;
+    font-stretch: 92%;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--texto);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .prova-unidade {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ciano);
+  }
+
+  .prova-legenda {
+    margin: var(--s2) 0 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--texto-2);
+    max-width: 24ch;
+  }
+
+  .prova-nota {
+    margin-block-start: var(--s5);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--texto-3);
+  }
+</style>

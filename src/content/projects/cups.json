@@ -1,0 +1,32 @@
+{
+  "order": 10,
+  "featured": false,
+  "category": "infra",
+  "status": "ativo",
+  "designator": "Q4",
+  "org": "CaTeIM",
+  "link": "https://hub.docker.com/r/cateim/cups",
+  "repo": "https://github.com/CaTeIM/cups",
+  "closed": false,
+  "stack": [
+    "Docker multi-arch (amd64 + arm64)",
+    "Ubuntu Rolling e Debian 13 Trixie",
+    "CUPS, printer-driver-all, hplip",
+    "Avahi (AirPrint e Bonjour)",
+    "GitHub Actions",
+    "runners ubuntu-24.04-arm",
+    "buildx imagetools",
+    "Bash (entrypoint)",
+    "Docker Hub"
+  ],
+  "pt": {
+    "name": "cateim/cups",
+    "pitch": "Transforma uma impressora USB antiga em impressora de rede com AirPrint usando um container CUPS que se reconstrói sozinho todo domingo, sempre na versão de CUPS que a base publicou. Roda igual num PC, num Raspberry Pi ou num Orange Pi, porque a imagem é multi-arquitetura de verdade.",
+    "note": "Impressora USB host-based (HP LaserJet P1102, P1005, série 1020) derruba a fila quando é desligada e religada: o container perde a referência do dispositivo e os jobs ficam presos em Held. A correção não mora no container, mora no host, uma regra udev que casa idVendor e idProduct e reinicia o container quando o aparelho reaparece. O CI tem um cuidado que quase todo mundo esquece: além de checar se a tag versionada já existe no Docker Hub, ele compara o digest de latest com o da tag da versão em Ubuntu e rebuilda se os dois divergirem, porque uma tag latest dessincronizada é o tipo de erro que ninguém percebe até puxar a imagem errada. E as duas arquiteturas são buildadas nativamente, arm64 no runner ubuntu-24.04-arm e amd64 no ubuntu-latest, cada uma empurrada por digest e unidas no fim com buildx imagetools, sem emular ARM com QEMU."
+  },
+  "en": {
+    "name": "cateim/cups",
+    "pitch": "Turns an old USB printer into a network printer with AirPrint through a CUPS container that rebuilds itself every Sunday, always on whatever CUPS version the base image ships. It runs the same on a PC, a Raspberry Pi or an Orange Pi, because the image is genuinely multi-arch.",
+    "note": "Host-based USB printers (HP LaserJet P1102, P1005, the 1020 series) take the queue down when you power cycle them: the container loses the device reference and jobs sit there as Held. The fix does not live in the container, it lives on the host, a udev rule matching idVendor and idProduct that restarts the container when the device comes back. The CI carries a check most people skip: besides asking whether the versioned tag already exists on Docker Hub, it compares the digest of latest against the Ubuntu version tag and rebuilds if the two have drifted apart, because a stale latest is the kind of mistake nobody notices until they pull the wrong image. Both architectures are built natively too, arm64 on the ubuntu-24.04-arm runner and amd64 on ubuntu-latest, each pushed by digest and joined at the end with buildx imagetools, no QEMU emulation involved."
+  }
+}

@@ -1,0 +1,367 @@
+---
+/**
+ * Trilha de PCB, o elemento estrutural da pagina.
+ *
+ * Corre pela lateral esquerda e carrega uma via por secao. A via nao e enfeite:
+ * e um link de ancora, e o conjunto funciona como indice de progresso. Quando a
+ * secao ativa muda, um pulso percorre o trecho da trilha ate a via nova.
+ *
+ * Em telas estreitas a coluna some e sobra uma barra de progresso de 2px no
+ * topo, que e a mesma informacao no espaco disponivel.
+ */
+import type { Locale } from '../i18n/ui';
+
+interface Secao {
+  id: string;
+  rotulo: string;
+}
+
+interface Props {
+  secoes: readonly Secao[];
+  locale: Locale;
+}
+
+const { secoes } = Astro.props;
+---
+
+<aside class="trilha" aria-hidden="true">
+  <svg class="trilha-svg" viewBox="0 0 24 100" preserveAspectRatio="none" focusable="false">
+    <defs>
+      <linearGradient id="trilha-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0BE4EB" stop-opacity="0" />
+        <stop offset="22%" stop-color="#0BE4EB" stop-opacity="0.55" />
+        <stop offset="78%" stop-color="#3AF2A8" stop-opacity="0.55" />
+        <stop offset="100%" stop-color="#3AF2A8" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <line x1="12" y1="0" x2="12" y2="100" stroke="url(#trilha-grad)" stroke-width="1.75" vector-effect="non-scaling-stroke" />
+  </svg>
+
+  <ol class="vias">
+    {
+      secoes.map((s, i) => (
+        <li class="via-item">
+          <a class="via" href={`#${s.id}`} data-via={s.id} aria-hidden="true" tabindex="-1">
+            <span class="via-anel" />
+            <span class="via-rotulo">
+              <span class="via-num">{String(i + 1).padStart(2, '0')}</span>
+              {s.rotulo}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</aside>
+
+<div class="progresso" aria-hidden="true"><span class="progresso-barra"></span></div>
+
+<style>
+  .trilha {
+    display: none;
+  }
+
+  /*
+   * Fio de progresso. Com a barra de rolagem do navegador oculta, ele deixa de
+   * ser reforco e passa a ser o unico indicador continuo de posicao, entao fica
+   * visivel em qualquer largura, e nao so no celular.
+   */
+  .progresso {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 2px;
+    z-index: 60;
+    background: color-mix(in srgb, var(--ciano) 8%, transparent);
+  }
+
+  .progresso-barra {
+    display: block;
+    height: 100%;
+    width: var(--avanco, 0%);
+    background: linear-gradient(90deg, var(--ciano), var(--menta));
+    transition: width 90ms linear;
+  }
+
+  @media (min-width: 60rem) {
+    .trilha {
+      display: block;
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: max(0px, calc((100vw - var(--largura)) / 2));
+      width: var(--gutter);
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .trilha-svg {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 1.5rem;
+      width: 1.5rem;
+      height: 100%;
+    }
+
+    .vias {
+      position: absolute;
+      inset-block-start: 50%;
+      transform: translateY(-50%);
+      inset-inline-start: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s5);
+      pointer-events: auto;
+    }
+
+    .via {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+
+    /*
+     * A via em si: o furo metalizado que liga duas camadas da placa.
+     *
+     * E um grid com um item so, e nao um bloco com pseudo-elemento posicionado.
+     * Posicionar por "50% + translate(-50%)" ancora no padding box, que a borda
+     * de 1.5px desloca, e ainda cai em meio pixel num ponto de tamanho impar: o
+     * resultado e um miolo visivelmente torto. Com place-content o item fica no
+     * centro exato da caixa de conteudo, que e concentrica ao anel por
+     * construcao, sem conta nenhuma para arredondar.
+     */
+    .via-anel {
+      display: grid;
+      place-content: center;
+      position: relative;
+      inset-inline-start: 0.375rem;
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 1.5px solid color-mix(in srgb, var(--ciano) 32%, transparent);
+      border-radius: 50%;
+      background: var(--base);
+      transition: border-color var(--medio) var(--curva), box-shadow var(--medio) var(--curva);
+    }
+
+    .via-anel::after {
+      content: '';
+      width: 0.25rem;
+      height: 0.25rem;
+      border-radius: 50%;
+      background: var(--ciano);
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity var(--medio) var(--curva), transform var(--medio) var(--curva);
+    }
+
+    .via-rotulo {
+      position: absolute;
+      inset-inline-start: 1.75rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--texto-2);
+      background: color-mix(in srgb, var(--base) 92%, transparent);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--raio);
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity var(--medio) var(--curva), transform var(--medio) var(--curva);
+    }
+
+    .via-num {
+      color: var(--texto-3);
+    }
+
+    .via:hover .via-rotulo,
+    .via:focus-visible .via-rotulo {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .via[aria-current='true'] .via-anel {
+      border-color: var(--menta);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--menta) 12%, transparent);
+    }
+
+    .via[aria-current='true'] .via-anel::after {
+      background: var(--menta);
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Ilha 1 de 3: acende a via da secao visivel e move a barra de progresso.
+   *
+   * IntersectionObserver com rootMargin recortando a faixa central da tela, para
+   * que a via mude quando a secao ocupa o meio do viewport, nao quando encosta
+   * na borda. Sem dependencia, sem listener de scroll por frame.
+   */
+  const vias = document.querySelectorAll<HTMLAnchorElement>('[data-via]');
+  const barra = document.querySelector<HTMLElement>('.progresso');
+
+  if (vias.length > 0) {
+    const alvos = [...vias]
+      .map((via) => document.getElementById(via.dataset.via!))
+      .filter((el): el is HTMLElement => el !== null);
+
+    const acender = (id: string) => {
+      for (const via of vias) {
+        via.setAttribute('aria-current', String(via.dataset.via === id));
+      }
+    };
+
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        const visivel = entradas
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visivel) acender(visivel.target.id);
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.5, 1] },
+    );
+
+    for (const alvo of alvos) observador.observe(alvo);
+  }
+
+  if (barra) {
+    let agendado = false;
+    const medir = () => {
+      const rolavel = document.documentElement.scrollHeight - window.innerHeight;
+      const razao = rolavel > 0 ? Math.min(1, window.scrollY / rolavel) : 0;
+      barra.style.setProperty('--avanco', `${(razao * 100).toFixed(2)}%`);
+      agendado = false;
+    };
+    addEventListener(
+      'scroll',
+      () => {
+        if (!agendado) {
+          agendado = true;
+          requestAnimationFrame(medir);
+        }
+      },
+      { passive: true },
+    );
+    medir();
+  }
+
+  /**
+   * Ilha 3 de 3: navegacao ponto a ponto entre secoes.
+   *
+   * Por que animar aqui em vez de deixar com o CSS: "scroll-behavior: smooth" e
+   * respeitado de forma desigual. Alguns navegadores e praticamente todo ambiente
+   * automatizado o ignoram e entregam um salto seco, que foi o defeito relatado.
+   * Animar por conta propria torna a rolagem identica em qualquer lugar, e ainda
+   * permite descontar a altura real do cabecalho, que muda com a largura da tela.
+   *
+   * A animacao e cancelada assim que a pessoa roda o mouse ou toca na tela: o
+   * gesto dela sempre vence a animacao.
+   */
+  (() => {
+    const html = document.documentElement;
+    const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let animacao = 0;
+
+    const cancelar = () => {
+      if (!animacao) return;
+      cancelAnimationFrame(animacao);
+      animacao = 0;
+      html.style.scrollSnapType = '';
+    };
+
+    // Aceleracao simetrica: sai devagar, ganha velocidade, encosta devagar.
+    const suavizar = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+    /*
+     * A folga vem do proprio CSS (scroll-padding-top), nao de uma medicao do
+     * cabecalho. Assim o destino da animacao e exatamente o ponto de encaixe que
+     * o scroll-snap usaria, e a rolagem nao termina com um ajuste visivel.
+     */
+    const folgaAncora = () => Number.parseFloat(getComputedStyle(html).scrollPaddingTop) || 88;
+
+    const irPara = (secao: HTMLElement) => {
+      const folga = folgaAncora();
+      const destino = Math.max(
+        0,
+        Math.min(
+          secao.getBoundingClientRect().top + window.scrollY - folga,
+          html.scrollHeight - window.innerHeight,
+        ),
+      );
+      const partida = window.scrollY;
+      const distancia = destino - partida;
+
+      if (semMovimento.matches || Math.abs(distancia) < 2) {
+        window.scrollTo(0, destino);
+        return;
+      }
+
+      cancelar();
+      // O encaixe brigaria com a animacao quadro a quadro, entao sai de cena
+      // durante a viagem e volta assim que ela termina.
+      html.style.scrollSnapType = 'none';
+
+      // Percurso longo nao pode levar tempo proporcional, senao a pagina inteira
+      // vira uma viagem de varios segundos. Cresce com a raiz e para em 900ms.
+      const duracao = Math.min(900, Math.max(340, Math.sqrt(Math.abs(distancia)) * 26));
+      const inicio = performance.now();
+
+      const passo = (agora: number) => {
+        const t = Math.min(1, (agora - inicio) / duracao);
+        window.scrollTo(0, partida + distancia * suavizar(t));
+        if (t < 1) {
+          animacao = requestAnimationFrame(passo);
+          return;
+        }
+        animacao = 0;
+        html.style.scrollSnapType = '';
+      };
+
+      animacao = requestAnimationFrame(passo);
+    };
+
+    for (const evento of ['wheel', 'touchstart', 'keydown']) {
+      addEventListener(evento, cancelar, { passive: true });
+    }
+
+    // Vale para o menu do cabecalho, para as vias da trilha e para os botoes do
+    // hero: qualquer link que aponte para uma ancora desta pagina.
+    addEventListener('click', (evento) => {
+      const link = (evento.target as HTMLElement)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+      if (!link) return;
+
+      const id = link.getAttribute('href')!.slice(1);
+      if (!id) return;
+
+      const secao = document.getElementById(id);
+      if (!secao) return;
+
+      evento.preventDefault();
+      irPara(secao);
+
+      // Mantem a URL compartilhavel sem deixar o navegador saltar sozinho.
+      history.pushState(null, '', `#${id}`);
+    });
+
+    // Chegada por link direto com fragmento: posiciona depois da pintura, para
+    // que a folga do cabecalho ja esteja medida corretamente.
+    if (location.hash.length > 1) {
+      const alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (alvo) {
+        requestAnimationFrame(() =>
+          window.scrollTo(0, alvo.getBoundingClientRect().top + window.scrollY - folgaAncora()),
+        );
+      }
+    }
+  })();
+</script>

@@ -1,0 +1,305 @@
+---
+/**
+ * Card de projeto, em duas alturas.
+ *
+ * variante "destaque": card grande, com a nota de campo aberta. Sao seis.
+ * variante "compacto": linha da grade do portfolio completo.
+ *
+ * O designator no canto (U1, Q7, R1) e a leitura de serigrafia de placa: da ao
+ * card a forma de ficha de componente e serve de referencia curta na conversa.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  projeto: CollectionEntry<'projects'>;
+  locale: Locale;
+  variante: 'destaque' | 'compacto';
+}
+
+const { projeto, locale, variante } = Astro.props;
+const t = ui[locale].portfolio;
+const rotuloNota = ui[locale].destaques.notaLabel;
+const d = projeto.data;
+const texto = d[locale];
+
+const destino = d.link ?? d.repo;
+const etiquetaDestino = d.link ? t.verServico : t.verCodigo;
+const stackVisivel = variante === 'destaque' ? d.stack : d.stack.slice(0, 4);
+const stackOculta = d.stack.length - stackVisivel.length;
+---
+
+<article class:list={['card', `card-${variante}`]} data-categoria={d.category}>
+  <header class="card-topo">
+    <span class="card-ref" aria-hidden="true">{d.designator}</span>
+    <span class="card-cat">{t.categorias[d.category]}</span>
+    <span class:list={['card-status', `status-${d.status}`]}>{t.status[d.status]}</span>
+  </header>
+
+  <h3 class="card-nome">
+    {
+      destino ? (
+        <a href={destino} rel="noopener" class="card-link">
+          {texto.name}
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true">
+            <path d="M5.5 10.5 10.5 5.5M6.5 5.5h4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
+          </svg>
+        </a>
+      ) : (
+        texto.name
+      )
+    }
+  </h3>
+
+  <p class="card-pitch">{texto.pitch}</p>
+
+  {
+    variante === 'destaque' && texto.note && (
+      <div class="card-nota">
+        <p class="card-nota-rotulo">{rotuloNota}</p>
+        <p class="card-nota-texto">{texto.note}</p>
+      </div>
+    )
+  }
+
+  <footer class="card-rodape">
+    <ul class="card-stack">
+      {stackVisivel.map((item) => <li>{item}</li>)}
+      {stackOculta > 0 && <li class="card-stack-mais">+{stackOculta}</li>}
+    </ul>
+
+    <p class="card-meta">
+      {d.org && <span class="card-org">{d.org}/</span>}
+      {d.closed && <span class="card-fechado">{t.privado}</span>}
+      {destino && <span class="card-destino">{etiquetaDestino}</span>}
+    </p>
+  </footer>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: var(--s5);
+    background: var(--alto);
+    border: var(--borda) solid var(--linha);
+    border-radius: var(--raio);
+    transition: border-color var(--medio) var(--curva), background var(--medio) var(--curva),
+      transform var(--medio) var(--curva);
+  }
+
+  /* Canto chanfrado no topo esquerdo: marca de orientacao de componente. */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset-block-start: -1px;
+    inset-inline-start: -1px;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-block-start: 2px solid var(--linha-forte);
+    border-inline-start: 2px solid var(--linha-forte);
+    border-start-start-radius: var(--raio);
+    transition: border-color var(--medio) var(--curva);
+  }
+
+  .card:hover {
+    border-color: color-mix(in srgb, var(--ciano) 32%, transparent);
+    background: var(--altissimo);
+    transform: translateY(-2px);
+  }
+
+  .card:hover::before {
+    border-color: var(--menta);
+  }
+
+  .card:focus-within {
+    border-color: color-mix(in srgb, var(--ciano) 32%, transparent);
+  }
+
+  .card-destaque {
+    padding: var(--s6);
+  }
+
+  /* ------------------------------------------------------------- topo - */
+
+  .card-topo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s3);
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .card-ref {
+    padding: 0.1rem 0.4rem;
+    border: var(--borda) solid var(--linha-forte);
+    border-radius: 2px;
+    color: var(--ciano);
+    font-weight: 500;
+  }
+
+  .card-cat {
+    color: var(--texto-3);
+  }
+
+  .card-status {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--texto-3);
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  .card-status::before {
+    content: '';
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+
+  .status-producao,
+  .status-entregue {
+    color: var(--menta);
+  }
+
+  .status-ativo {
+    color: var(--ciano);
+  }
+
+  /* ------------------------------------------------------------ corpo - */
+
+  .card-nome {
+    margin-block-start: var(--s4);
+    font-size: 1.1875rem;
+    font-stretch: 102%;
+  }
+
+  .card-destaque .card-nome {
+    font-size: clamp(1.375rem, 1.2rem + 0.9vw, 1.75rem);
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    transition: color var(--rapido) var(--curva);
+  }
+
+  .card-link::after {
+    /* Alvo de clique cobrindo o card inteiro, sem aninhar links. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--raio);
+  }
+
+  .card-link:hover {
+    color: var(--ciano);
+  }
+
+  .card-link svg {
+    flex: none;
+    color: var(--texto-3);
+    transition: color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
+  }
+
+  .card-link:hover svg {
+    color: var(--ciano);
+    transform: translate(1px, -1px);
+  }
+
+  .card-pitch {
+    margin-block-start: var(--s3);
+    color: var(--texto-2);
+    font-size: 0.9375rem;
+  }
+
+  .card-destaque .card-pitch {
+    font-size: 1rem;
+  }
+
+  /* ------------------------------------------------------------- nota - */
+
+  .card-nota {
+    margin-block-start: var(--s5);
+    padding: var(--s4);
+    background: color-mix(in srgb, var(--poco) 65%, transparent);
+    border-inline-start: 2px solid var(--menta);
+    border-radius: 0 var(--raio) var(--raio) 0;
+  }
+
+  .card-nota-rotulo {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--menta);
+  }
+
+  .card-nota-texto {
+    margin-block-start: var(--s2);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--texto-2);
+  }
+
+  /* ----------------------------------------------------------- rodape - */
+
+  .card-rodape {
+    margin-block-start: auto;
+    padding-block-start: var(--s5);
+  }
+
+  .card-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--texto-3);
+  }
+
+  /*
+   * Sem "nowrap": um item que caiba na linha nunca quebra, porque cada etiqueta
+   * e um flex item e vai inteira para a proxima linha quando falta espaco. A
+   * quebra interna so entra em acao quando a etiqueta sozinha e mais larga que o
+   * card, que e o caso de nomes como "LILYGO T-Display e Waveshare S3 Touch LCD".
+   */
+  .card-stack li {
+    max-width: 100%;
+    padding: 0.1rem 0.4rem;
+    border: var(--borda) solid color-mix(in srgb, var(--ciano) 9%, transparent);
+    border-radius: 2px;
+    overflow-wrap: anywhere;
+  }
+
+  .card-stack-mais {
+    color: var(--texto-2);
+  }
+
+  .card-meta {
+    margin-block-start: var(--s3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--texto-3);
+  }
+
+  .card-org {
+    color: var(--texto-2);
+  }
+
+  .card-destino {
+    color: var(--ciano);
+  }
+</style>

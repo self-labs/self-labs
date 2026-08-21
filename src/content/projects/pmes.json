@@ -1,0 +1,30 @@
+{
+  "order": 9,
+  "featured": false,
+  "category": "publico",
+  "status": "producao",
+  "designator": "Q3",
+  "link": "https://pmes.selflabs.org",
+  "closed": true,
+  "stack": [
+    "Node.js + Express 4",
+    "PostgreSQL 16",
+    "JWT + bcryptjs",
+    "helmet + express-rate-limit",
+    "JavaScript vanilla",
+    "Nginx",
+    "Docker Compose",
+    "Cloudflare Tunnel",
+    "Orange Pi 5 (ARM64)"
+  ],
+  "pt": {
+    "name": "PMES Escalas e ISEO",
+    "pitch": "Monta a escala mensal, a diária e a ISEO de uma unidade da PMES e imprime tudo em papel timbrado A4, do jeito que o comando assina. O efetivo chega pelo número funcional, puxado dos sistemas do governo do Estado, em vez de ser redigitado uma vez em cada uma das três telas.",
+    "note": "O cadastro busca o militar em duas fontes independentes e sempre em modo best-effort. O CKAN público de dados.es.gov.br devolve nome, cargo e situação, consultado por filters de match exato porque o parâmetro q não indexa o número funcional, e o código ainda escolhe entre os vários vínculos do mesmo servidor, preferindo o da PMES em situação ATIVO. O RG vem de uma automação autenticada do Localizar Policial na intranet, que percorre o caminho inteiro: authenticate com a senha em base64, token do sistema 18, login.aspx para ativar a sessão e um postback ASP.NET síncrono carregando __VIEWSTATE e __EVENTVALIDATION. Qualquer falha nesse caminho devolve disponivel:false com o motivo e o cadastro cai no preenchimento manual, então intranet fora do ar atrasa o trabalho e nunca trava. Em cima disso roda um job semanal que reconsulta posto e quadro de todo mundo, então promoção entra sozinha."
+  },
+  "en": {
+    "name": "PMES Rosters and ISEO",
+    "pitch": "Builds a PMES unit's monthly roster, daily roster and ISEO, then prints all of it on A4 letterhead exactly as the command signs it. Personnel arrive by service number, pulled from state government systems, instead of being retyped once on each of the three screens.",
+    "note": "Personnel lookup hits two independent sources, always best effort. The public CKAN at dados.es.gov.br returns name, role and status, queried through exact-match filters because the q parameter does not index the service number, and the code still picks among the several employment records one person can have, preferring the PMES one marked ATIVO. The RG comes from an authenticated automation of the intranet's Localizar Policial, walking the whole path: authenticate with a base64 password, fetch the token for system 18, hit login.aspx to open the session, then a synchronous ASP.NET postback carrying __VIEWSTATE and __EVENTVALIDATION. Any failure along that path returns disponivel:false with a reason and the form falls back to manual entry, so an intranet outage slows the work down but never blocks it. On top of that a weekly job re-checks everyone's rank, so promotions land on their own."
+  }
+}

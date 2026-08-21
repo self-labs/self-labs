@@ -1,0 +1,166 @@
+---
+/**
+ * Grade completa do portfolio, com filtro por categoria.
+ *
+ * O filtro roda sem framework: os cards ja vem no HTML e o script apenas
+ * alterna um atributo. Sem JavaScript o visitante ve todos os projetos, que e
+ * o estado util. Nada aqui depende de hidratacao para o conteudo existir.
+ */
+import { getCollection } from 'astro:content';
+import CardProjeto from './CardProjeto.astro';
+import { ui, type Locale } from '../i18n/ui';
+import { CATEGORIES } from '../content.config';
+
+interface Props {
+  locale: Locale;
+}
+
+const locale = Astro.props.locale;
+const t = ui[locale].portfolio;
+
+const projetos = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+/** Só entram no filtro as categorias que realmente têm projeto. */
+const categorias = CATEGORIES.filter((c) => projetos.some((p) => p.data.category === c)).map((c) => ({
+  id: c,
+  rotulo: t.categorias[c],
+  total: projetos.filter((p) => p.data.category === c).length,
+}));
+---
+
+<section class="secao" id="arquivo">
+  <div class="casca">
+    <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+    <h2 class="titulo-secao">{t.titulo}</h2>
+    <p class="subtitulo-secao">{t.subtitulo}</p>
+
+    <div class="filtro" role="group" aria-label={t.filtroLabel}>
+      <button class="filtro-botao" type="button" data-filtro="todos" aria-pressed="true">
+        {t.todos}
+        <span class="filtro-total">{projetos.length}</span>
+      </button>
+      {
+        categorias.map((c) => (
+          <button class="filtro-botao" type="button" data-filtro={c.id} aria-pressed="false">
+            {c.rotulo}
+            <span class="filtro-total">{c.total}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <p class="contagem" aria-live="polite" data-contagem>{t.contagem(projetos.length)}</p>
+
+    <div class="arquivo-grade" data-grade>
+      {projetos.map((projeto) => <CardProjeto projeto={projeto} locale={locale} variante="compacto" />)}
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ modelo: t.contagem(0).replace('0', '{n}'), singular: t.contagem(1) }}>
+  /**
+   * Ilha 2 de 3: filtro da vitrine.
+   *
+   * Inline e pequeno de proposito: e a unica interacao da pagina que precisa
+   * responder no primeiro clique, entao nao vale esperar um bundle carregar.
+   */
+  (() => {
+    const grade = document.querySelector('[data-grade]');
+    const contador = document.querySelector('[data-contagem]');
+    const botoes = document.querySelectorAll('[data-filtro]');
+    if (!grade || !contador) return;
+
+    const cards = [...grade.children];
+
+    const aplicar = (alvo) => {
+      let visiveis = 0;
+      for (const card of cards) {
+        const mostrar = alvo === 'todos' || card.dataset.categoria === alvo;
+        card.hidden = !mostrar;
+        if (mostrar) visiveis++;
+      }
+      contador.textContent = visiveis === 1 ? singular : modelo.replace('{n}', String(visiveis));
+      for (const botao of botoes) {
+        botao.setAttribute('aria-pressed', String(botao.dataset.filtro === alvo));
+      }
+    };
+
+    for (const botao of botoes) {
+      botao.addEventListener('click', () => aplicar(botao.dataset.filtro));
+    }
+  })();
+</script>
+
+<style>
+  .filtro {
+    margin-block-start: var(--s6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+
+  .filtro-botao {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    min-height: 2.75rem;
+    padding: var(--s2) var(--s4);
+    background: transparent;
+    border: var(--borda) solid var(--linha);
+    border-radius: var(--raio);
+    color: var(--texto-2);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva),
+      background var(--rapido) var(--curva);
+  }
+
+  .filtro-botao:hover {
+    color: var(--texto);
+    border-color: var(--linha-forte);
+  }
+
+  .filtro-botao[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--menta) 12%, transparent);
+    border-color: var(--menta);
+    color: var(--texto);
+  }
+
+  .filtro-total {
+    font-size: 0.6875rem;
+    color: var(--texto-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filtro-botao[aria-pressed='true'] .filtro-total {
+    color: var(--menta);
+  }
+
+  .contagem {
+    margin-block-start: var(--s4);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--texto-3);
+  }
+
+  .arquivo-grade {
+    margin-block-start: var(--s4);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s4);
+  }
+
+  @media (min-width: 44rem) {
+    .arquivo-grade {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .arquivo-grade {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

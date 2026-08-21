@@ -1,0 +1,54 @@
+---
+/**
+ * O que e o Self-Labs, em tres paragrafos.
+ *
+ * O primeiro paragrafo ganha corpo maior porque carrega a explicacao do nome,
+ * que e a coisa mais importante da secao.
+ */
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = ui[Astro.props.locale].lab;
+---
+
+<section class="secao" id="lab">
+  <div class="casca">
+    <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+    <h2 class="titulo-secao">{t.titulo}</h2>
+
+    <div class="lab-texto">
+      {t.paragrafos.map((p, i) => <p class={i === 0 ? 'lab-primeiro' : undefined}>{p}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .lab-texto {
+    margin-block-start: var(--s6);
+    display: grid;
+    gap: var(--s5);
+    max-width: 68ch;
+  }
+
+  .lab-texto p {
+    color: var(--texto-2);
+    font-size: 1.0625rem;
+  }
+
+  .lab-primeiro {
+    font-size: 1.1875rem;
+    color: var(--texto);
+    padding-inline-start: var(--s5);
+    border-inline-start: 2px solid var(--menta);
+  }
+
+  @media (min-width: 48rem) {
+    .lab-primeiro {
+      font-size: 1.3125rem;
+      line-height: 1.5;
+    }
+  }
+</style>

@@ -1,0 +1,30 @@
+{
+  "order": 1,
+  "featured": true,
+  "category": "produto",
+  "status": "producao",
+  "designator": "U1",
+  "link": "https://store.selflabs.org",
+  "closed": true,
+  "stack": [
+    "Django 5",
+    "React 18 + Vite",
+    "PostgreSQL 15",
+    "embit",
+    "Nova DAO (Pix em DePix)",
+    "Melhor Envio",
+    "Docker + Portainer",
+    "GitHub Actions (runner ARM64)",
+    "Cloudflare Tunnel"
+  ],
+  "pt": {
+    "name": "Wallet Store",
+    "pitch": "Vende hardware wallets DIY montadas à mão para quem compra autocustódia e não quer deixar CPF, endereço e e-mail guardados para sempre. Não pede cadastro, aceita Pix e Bitcoin, e apaga os dados pessoais do comprador cerca de 72 horas depois da entrega.",
+    "note": "Nenhuma chave privada toca o servidor: a loja carrega só xpub watch-only e deriva um endereço novo por venda com descriptor RANGED e .derive(index), porque no embit chamar .script_pubkey() sem derivar devolve sempre o /0/0. O entrypoint roda o check_depix antes do gunicorn e recusa subir a aplicação se o xpub configurado derivar um endereço diferente do esperado, então xpub trocado por invasor vira deploy quebrado em vez de pagamento desviado em silêncio. Na Liquid, a blinding key sai por endereço via SLIP-77, que é HMAC-SHA256 da master blinding key sobre o scriptPubKey. E o comando reaper destrói a PII 72 horas depois da entrega, o que põe a LGPD no cron em vez do papel."
+  },
+  "en": {
+    "name": "Wallet Store",
+    "pitch": "Sells hand-assembled DIY hardware wallets to people who buy self-custody and would rather not leave their tax ID, address and email sitting in a shop's database forever. No account to create, payment in Pix or Bitcoin, and the buyer's personal data is wiped about 72 hours after delivery.",
+    "note": "No private key ever touches the server: the shop loads watch-only xpubs and derives a fresh address per sale from a RANGED descriptor with .derive(index), since calling .script_pubkey() without deriving always hands back /0/0 in embit. The entrypoint runs check_depix before gunicorn and refuses to start the app if the configured xpub derives an address other than the expected one, so a swapped xpub becomes a broken deploy instead of a silently redirected payment. On Liquid the blinding key is derived per address via SLIP-77, HMAC-SHA256 of the master blinding key over the scriptPubKey. And the reaper command destroys the buyer's personal data 72 hours after delivery, which puts privacy law in cron instead of on paper."
+  }
+}

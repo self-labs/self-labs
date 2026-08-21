@@ -1,0 +1,121 @@
+---
+/**
+ * Cinco pilares de engenharia.
+ *
+ * A numeracao aqui e legitima: os pilares nao sao uma sequencia temporal, mas a
+ * lista tem ordem de importancia declarada, e o numero serve de referencia curta
+ * ("o terceiro"). Cada pilar termina com os projetos que o comprovam, porque
+ * principio sem prova e cartaz de parede.
+ */
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = ui[Astro.props.locale].metodo;
+---
+
+<section class="secao" id="metodo">
+  <div class="casca">
+    <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+    <h2 class="titulo-secao">{t.titulo}</h2>
+    <p class="subtitulo-secao">{t.subtitulo}</p>
+
+    <ol class="pilares">
+      {
+        t.pilares.map((p, i) => (
+          <li class="pilar">
+            <span class="pilar-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div class="pilar-corpo">
+              <h3 class="pilar-titulo">{p.titulo}</h3>
+              <p class="pilar-texto">{p.texto}</p>
+              <p class="pilar-prova">
+                <span class="pilar-prova-rotulo">{t.provaLabel}</span>
+                {p.prova.map((nome) => (
+                  <span class="marca-prova">{nome}</span>
+                ))}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .pilares {
+    margin-block-start: var(--s7);
+    display: grid;
+    gap: 0;
+    counter-reset: pilar;
+  }
+
+  .pilar {
+    display: grid;
+    gap: var(--s3);
+    padding-block: var(--s6);
+    border-block-start: var(--borda) solid var(--linha);
+  }
+
+  .pilar:last-child {
+    border-block-end: var(--borda) solid var(--linha);
+  }
+
+  @media (min-width: 48rem) {
+    .pilar {
+      grid-template-columns: 4rem minmax(0, 1fr);
+      gap: var(--s5);
+    }
+  }
+
+  .pilar-num {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--texto-3);
+    padding-block-start: 0.35rem;
+  }
+
+  .pilar-titulo {
+    font-size: clamp(1.125rem, 1rem + 0.6vw, 1.4375rem);
+    font-stretch: 102%;
+    letter-spacing: -0.005em;
+    max-width: 34ch;
+  }
+
+  .pilar-texto {
+    margin-block-start: var(--s3);
+    max-width: 70ch;
+    color: var(--texto-2);
+  }
+
+  .pilar-prova {
+    margin-block-start: var(--s4);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2);
+  }
+
+  .pilar-prova-rotulo {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--texto-3);
+    margin-inline-end: var(--s1);
+  }
+
+  .marca-prova {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border: var(--borda) solid var(--linha);
+    border-radius: var(--raio);
+    color: var(--texto-2);
+    white-space: nowrap;
+  }
+</style>

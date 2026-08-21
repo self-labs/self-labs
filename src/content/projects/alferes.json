@@ -1,0 +1,30 @@
+{
+  "order": 3,
+  "featured": true,
+  "category": "publico",
+  "status": "producao",
+  "designator": "U3",
+  "link": "https://alferes.selflabs.org",
+  "closed": true,
+  "stack": [
+    "Node.js 26 em ESM puro",
+    "node:http com roteador próprio",
+    "PostgreSQL 18",
+    "driver postgres, sem ORM",
+    "esbuild",
+    "JavaScript vanilla no frontend",
+    "Docker + Portainer (GitOps)",
+    "Caddy",
+    "Cloudflare Tunnel"
+  ],
+  "pt": {
+    "name": "ALFERES",
+    "pitch": "Junta num sistema só o que a Seção P1 de uma unidade da Polícia Militar do Espírito Santo mantinha em planilhas do Google costuradas com Apps Script: efetivo, dispensas, concessões, férias, saúde, conceito, movimentações e a geração das notas. Entrou em produção no 3º CPOR, com cerca de 500 militares e 20 usuários simultâneos no pico, e o cadastro de unidades já cobre o estado inteiro.",
+    "note": "O controle de acesso anda em dois eixos que nunca se misturam: administrar é escrever e segue unidade_administradora_id; comandar é ler consolidado e segue a subordinação, percorrida por CTE recursiva sobre unidade_pai_id. Juntar os dois entregaria escrita sobre CPF e dado de saúde de batalhões inteiros a quem só precisa olhar totais, e dado de saúde é categoria especial na LGPD. O filtro sai em SQL, não na tela: esconder o botão é cortesia, quem barra é a cláusula. No mesmo espírito, o runner de migrations roda no boot com pg_advisory_xact_lock e checksum sha256 por arquivo, então editar uma migration já aplicada faz o servidor se recusar a subir em vez de divergir em silêncio."
+  },
+  "en": {
+    "name": "ALFERES",
+    "pitch": "Folds into one system what a Military Police personnel section in Espírito Santo, Brazil, kept in Google Sheets stitched together with Apps Script: headcount, leave, benefits, vacation, medical boards, service records, transfers and the official notices. It went live at one unit of roughly 500 officers with about 20 concurrent users at peak, and the unit registry already covers the whole state.",
+    "note": "Access control runs on two axes that never mix: administering means writing and follows unidade_administradora_id, while commanding means reading consolidated numbers and follows the chain of subordination, walked with a recursive CTE over unidade_pai_id. Merge them and anyone who only needs to read totals gets write access to national ID numbers and health records for entire battalions, and health data is a special category under Brazilian privacy law. The filter lands in SQL, not on screen: hiding the button is a courtesy, the clause is what stops you. Same spirit in the migration runner, which runs at boot under pg_advisory_xact_lock with a sha256 per file, so editing a migration that was already applied makes the server refuse to start instead of drifting in silence."
+  }
+}

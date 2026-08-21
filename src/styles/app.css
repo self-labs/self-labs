@@ -1,0 +1,391 @@
+/*
+ * Self-Labs, folha unica.
+ *
+ * A pagina e escura por decisao, nao por moda: a marca nasceu sobre petroleo
+ * #20292E e as cinco cores das trilhas ficam entre 1.45:1 e 1.58:1 contra
+ * branco, ou seja, sao ilegiveis em fundo claro. Nao existe modo claro aqui.
+ *
+ * Contrastes medidos contra o fundo base:
+ *   texto           #E8F0F2  12.8:1
+ *   texto-2         #93A7B0   5.9:1
+ *   ciano           #0BE4EB   9.4:1
+ *   menta           #3AF2A8  10.2:1
+ */
+
+/* ---------------------------------------------------------------- tokens - */
+
+:root {
+  /* Superficies, do mais fundo ao mais alto */
+  --poco: #171e22;
+  --base: #20292e;
+  --alto: #263137;
+  --altissimo: #2d3a41;
+
+  /* Trilhas, extraidas do SVG da marca */
+  --ciano: #0be4eb;
+  --teal: #10e8d2;
+  --aqua: #2cebce;
+  --menta: #3af2a8;
+  --verde: #4bed9b;
+
+  /* Texto */
+  --texto: #e8f0f2;
+  --texto-2: #93a7b0;
+  --texto-3: #6d8089;
+
+  /* Linhas e sinais */
+  --linha: color-mix(in srgb, var(--ciano) 14%, transparent);
+  --linha-forte: color-mix(in srgb, var(--ciano) 30%, transparent);
+  --reticula: color-mix(in srgb, var(--ciano) 4.5%, transparent);
+
+  /* Tipo */
+  --display: 'Archivo Variable', system-ui, sans-serif;
+  --corpo: 'Manrope Variable', system-ui, sans-serif;
+  --mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Ritmo. Escala de 4px, densidade padrao. */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+  --s9: 6rem;
+  --s10: 8rem;
+
+  /* Medidas estruturais */
+  --largura: 74rem;
+  --gutter: 4.5rem; /* faixa onde a trilha de PCB corre */
+  /* Folga da ancora: fonte unica lida pelo CSS e pela animacao de navegacao. */
+  --folga-ancora: 5.5rem;
+  --borda: 1px;
+  --raio: 3px; /* quase reto: placa de circuito nao tem canto redondo */
+
+  /* Tempo */
+  --rapido: 140ms;
+  --medio: 260ms;
+  --lento: 620ms;
+  --curva: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------ base - */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /*
+   * O cabecalho e sticky e tem cerca de 3.5rem. Sem esta reserva a ancora para
+   * com o titulo da secao escondido atras dele.
+   */
+  scroll-padding-top: var(--folga-ancora);
+  -webkit-text-size-adjust: 100%;
+
+  /*
+   * Barra de rolagem oculta. Ela some porque foi substituida, nao escondida: o
+   * fio de progresso no topo e a coluna de vias na lateral dizem a mesma coisa
+   * na linguagem da pagina. A rolagem em si continua inteira, por roda do mouse,
+   * teclado, gesto e barra de espaco.
+   */
+  scrollbar-width: none;
+
+  /*
+   * Encaixe por proximidade, nunca obrigatorio. Com "mandatory" uma secao mais
+   * alta que a tela, como a grade de dezenove projetos, prenderia o leitor no
+   * comeco dela: qualquer parada no meio seria puxada de volta. Com "proximity"
+   * o encaixe so acontece quando a rolagem ja parou perto de um limite.
+   */
+  scroll-snap-type: y proximity;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--texto);
+  font-family: var(--corpo);
+  font-size: 1rem;
+  line-height: 1.6;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /*
+   * "clip" e nao "hidden" de proposito. overflow-x: hidden transforma o body em
+   * contexto de rolagem, e nesse caso o scroll-behavior: smooth declarado no
+   * html deixa de valer: toda ancora passa a saltar de uma vez. Com "clip" o
+   * transbordo horizontal e cortado sem criar scroller novo.
+   */
+  overflow-x: clip;
+}
+
+/* O mesmo, no motor WebKit e Blink, que ignora scrollbar-width. */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/*
+ * Reticula de bancada. Papel milimetrado a 4.5% de opacidade, ancorado no topo
+ * e desaparecendo antes do rodape para nao competir com o conteudo.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--reticula) var(--borda), transparent var(--borda)),
+    linear-gradient(90deg, var(--reticula) var(--borda), transparent var(--borda));
+  background-size: 2rem 2rem;
+  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Foco visivel em toda a pagina: 2px solidos, offset, no minimo 3:1. */
+:focus-visible {
+  outline: 2px solid var(--ciano);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--menta);
+  color: var(--poco);
+}
+
+.pular {
+  position: absolute;
+  left: var(--s4);
+  top: calc(var(--s4) * -4);
+  z-index: 100;
+  padding: var(--s3) var(--s5);
+  background: var(--menta);
+  color: var(--poco);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  transition: top var(--rapido) var(--curva);
+}
+
+.pular:focus {
+  top: var(--s4);
+}
+
+.oculto-visual {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- layout - */
+
+.casca {
+  position: relative;
+  z-index: 1;
+  max-width: var(--largura);
+  margin-inline: auto;
+  padding-inline: var(--s5);
+}
+
+@media (min-width: 60rem) {
+  .casca {
+    padding-inline: var(--gutter) var(--s6);
+  }
+}
+
+.secao {
+  position: relative;
+  padding-block: var(--s9);
+
+  /*
+   * Ponto de encaixe da navegacao. O alinhamento e "start" e a margem desconta
+   * o cabecalho sticky, para a secao parar com o rotulo visivel e nao colado
+   * embaixo dele.
+   */
+  scroll-snap-align: start;
+  scroll-margin-top: var(--folga-ancora);
+}
+
+.secao + .secao {
+  padding-block-start: 0;
+}
+
+@media (min-width: 60rem) {
+  .secao {
+    padding-block: var(--s10);
+  }
+}
+
+/* ------------------------------------------------------- rotulo de secao - */
+
+/*
+ * O rotulo imita serigrafia de placa: caixa alta, condensado, monoespacado no
+ * codigo. O codigo nao e decorativo, e a mesma ancora usada pela via na trilha.
+ */
+.rotulo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  margin-block-end: var(--s5);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.rotulo::after {
+  content: '';
+  flex: 1;
+  height: var(--borda);
+  background: linear-gradient(90deg, var(--linha), transparent);
+}
+
+.rotulo b {
+  color: var(--ciano);
+  font-weight: 500;
+}
+
+.titulo-secao {
+  font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3rem);
+  font-stretch: 105%;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  max-width: 22ch;
+}
+
+.subtitulo-secao {
+  margin-block-start: var(--s4);
+  max-width: 62ch;
+  color: var(--texto-2);
+  font-size: 1.0625rem;
+}
+
+/* ----------------------------------------------------------------- links - */
+
+.link-linha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--ciano);
+  border-block-end: var(--borda) solid transparent;
+  transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+
+.link-linha:hover {
+  border-block-end-color: var(--ciano);
+}
+
+.link-linha svg {
+  width: 0.875em;
+  height: 0.875em;
+  flex: none;
+}
+
+/* --------------------------------------------------------------- botoes - */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: 2.75rem; /* alvo de toque de 44px */
+  padding: var(--s3) var(--s5);
+  border: var(--borda) solid transparent;
+  border-radius: var(--raio);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background var(--rapido) var(--curva), border-color var(--rapido) var(--curva),
+    color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
+}
+
+.botao-primario {
+  background: var(--menta);
+  color: var(--poco);
+  font-weight: 600;
+}
+
+.botao-primario:hover {
+  background: var(--verde);
+  transform: translateY(-1px);
+}
+
+.botao-secundario {
+  border-color: var(--linha-forte);
+  color: var(--texto);
+  background: transparent;
+}
+
+.botao-secundario:hover {
+  border-color: var(--ciano);
+  color: var(--ciano);
+  background: color-mix(in srgb, var(--ciano) 7%, transparent);
+}
+
+/* ------------------------------------------------------------ movimento - */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    /* Sem zerar o atraso, uma cascata escalonada ficaria invisivel por segundos. */
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "order": 18,
+  "featured": false,
+  "category": "firmware",
+  "status": "ativo",
+  "designator": "R1",
+  "org": "oroderico",
+  "repo": "https://github.com/oroderico/origo",
+  "closed": false,
+  "stack": [
+    "C",
+    "ESP-IDF 5.5.4",
+    "ESP32 T-Display",
+    "libwally-core",
+    "SDL2",
+    "GitHub Actions"
+  ],
+  "pt": {
+    "name": "Origo",
+    "pitch": "Projeto do Oderico, não meu: corrijo bugs com acesso de escrita ao repositório. É um firmware que gera seed BIP39 a partir dos dados, moedas ou cartas que o próprio dono jogou, numa placa sem rádio, sem disco e sem gerador de números aleatórios no caminho da seed.",
+    "note": "Em julho de 2026 cerca de 88 milhões de dólares saíram de carteiras Coldcard por causa de uma flag de build de 2021 que roteou a geração de seed para um PRNG de fallback, entregando cerca de 72 bits de entropia onde se assumiam 128. Passou cinco anos sem ninguém notar. A resposta do Origo é tirar o gerador do caminho: a seed é função pura do que o humano anotou no papel, então dá para stubar o RNG inteiro e obter exatamente a mesma seed. Wi-Fi e Bluetooth não estão desligados, estão ausentes do grafo de build, e um script no CI rejeita o binário se algum símbolo de rádio aparecer."
+  },
+  "en": {
+    "name": "Origo",
+    "pitch": "Oderico project, not mine: I fix bugs there with write access to the repository. It is firmware that turns the dice, coins or cards the owner rolled into a BIP39 seed, on a board with no radio, no storage and no random number generator along the seed path.",
+    "note": "In July 2026 roughly 88 million dollars drained out of Coldcard wallets because a 2021 build flag quietly routed seed generation to a fallback PRNG, yielding about 72 bits of entropy where 128 were assumed. It went five years unnoticed. Origo answers that by taking the generator out of the path: the seed is a pure function of what the human wrote on paper, so you can stub the entire RNG and still get the exact same seed. Wi-Fi and Bluetooth are not disabled, they are absent from the build graph, and a CI script rejects the binary if any radio symbol shows up."
+  }
+}

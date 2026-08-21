@@ -1,0 +1,31 @@
+{
+  "order": 5,
+  "featured": true,
+  "category": "firmware",
+  "status": "producao",
+  "designator": "U5",
+  "org": "CaTeIM",
+  "link": "https://crypto.selflabs.org",
+  "closed": true,
+  "stack": [
+    "Django REST Framework",
+    "Python 3.12",
+    "React 18",
+    "PostgreSQL 15",
+    "Redis 7",
+    "embit",
+    "Electrum JSON-RPC",
+    "Esplora API",
+    "Orange Pi 5"
+  ],
+  "pt": {
+    "name": "Crypto Tracker",
+    "pitch": "Acompanha preço médio, lucro não realizado e saldo on-chain de Bitcoin, Liquid Bitcoin e DePix lendo a blockchain direto por xpub watch-only, num Orange Pi 5 em casa. Nenhuma chave privada entra, nenhum endereço sai para app de terceiro, e transferência entre duas carteiras suas não conta como compra nem como venda.",
+    "note": "Para Bitcoin não há explorador proprietário no caminho: o backend fala Electrum JSON-RPC sobre SSL contra um pool de três servidores, converte o scriptPubKey em scripthash no formato Electrum e faz o parse da raw transaction localmente com embit. No Liquid os endereços confidenciais saem do descriptor via SLIP77 e o unblinding acontece na própria máquina, com as requisições em round-robin entre liquid.network e blockstream.info. A deduplicação é por carteira, com unicidade em (wallet, txid), então o mesmo txid vive nas duas pontas de uma transferência interna sem que nenhum lado seja descartado, e a flag is_internal deixa esses valores neutros no investido e no P&L. O preço tem circuit breaker de verdade: três falhas seguidas da Binance caem para a AwesomeAPI, com cache Redis de 30 segundos e um último valor conhecido de uma hora para emergência."
+  },
+  "en": {
+    "name": "Crypto Tracker",
+    "pitch": "Tracks average cost, unrealized P&L and on-chain balance for Bitcoin, Liquid Bitcoin and DePix by reading the chain itself from a watch-only xpub, on an Orange Pi 5 at home. No private key goes in, no address goes out to somebody else's app, and moving coins between two of your own wallets counts as neither a buy nor a sell.",
+    "note": "For Bitcoin there is no proprietary explorer in the path: the backend speaks Electrum JSON-RPC over SSL against a pool of three servers, turns the scriptPubKey into an Electrum scripthash and parses the raw transaction locally with embit. On Liquid the confidential addresses come off the descriptor via SLIP77 and unblinding happens on the box itself, with requests round robined between liquid.network and blockstream.info. Deduplication is per wallet, unique on (wallet, txid), so the same txid can sit on both ends of an internal transfer without either side being dropped, and an is_internal flag keeps those amounts neutral in invested and P&L. The price service has a real circuit breaker: three consecutive Binance failures fall through to AwesomeAPI, backed by a 30 second Redis cache and a one hour last known value for emergencies."
+  }
+}

@@ -1,0 +1,40 @@
+---
+/**
+ * Corpo da landing, montado uma vez e reaproveitado pelos dois idiomas.
+ *
+ * As duas rotas (/ e /en) sao a mesma pagina com outro locale, entao a ordem das
+ * secoes nunca diverge entre os idiomas por descuido.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from './Hero.astro';
+import Prova from './Prova.astro';
+import Lab from './Lab.astro';
+import Metodo from './Metodo.astro';
+import Destaques from './Destaques.astro';
+import Portfolio from './Portfolio.astro';
+import Producao from './Producao.astro';
+import Limites from './Limites.astro';
+import Externo from './Externo.astro';
+import Contato from './Contato.astro';
+import type { Locale } from '../i18n/ui';
+import { version } from '../../package.json';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<Base locale={locale} versao={version}>
+  <Hero locale={locale} />
+  <Prova locale={locale} />
+  <Lab locale={locale} />
+  <Metodo locale={locale} />
+  <Destaques locale={locale} />
+  <Portfolio locale={locale} />
+  <Producao locale={locale} />
+  <Limites locale={locale} />
+  <Externo locale={locale} />
+  <Contato locale={locale} />
+</Base>

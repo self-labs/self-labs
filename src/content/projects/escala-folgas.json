@@ -1,0 +1,27 @@
+{
+  "order": 15,
+  "featured": false,
+  "category": "publico",
+  "status": "producao",
+  "designator": "Q9",
+  "closed": true,
+  "stack": [
+    "React 19",
+    "Vite 8",
+    "react-big-calendar",
+    "date-fns",
+    "Supabase (Postgres, RLS, Auth)",
+    "Vitest 3",
+    "Vercel"
+  ],
+  "pt": {
+    "name": "Escala e Folgas",
+    "pitch": "Mostra num calendário a escala 12x24 e 12x72 de cada equipe e deixa o próprio policial clicar no dia para marcar a folga. Cada marcação guarda quem criou e quem alterou, no lugar da negociação solta no grupo de mensagem. Cinco equipes giram no mesmo ciclo fixo e nenhuma enxerga nem mexe na folga da outra.",
+    "note": "A autorização inteira mora no app_metadata do JWT, nunca no user_metadata, porque user_metadata é gravável pelo próprio usuário via supabase.auth.updateUser: autopromoção a admin ou troca de equipe estariam a uma linha de distância. Um gatilho de cadastro copia a equipe validada para o app_metadata, o papel de admin só é definido pela RPC admin_set_role, e as policies de INSERT e UPDATE usam WITH CHECK nos dois lados para impedir forjar o dono ou empurrar a folga para outra equipe. Um gatilho folgas_guard_update ainda barra o membro comum que tente reatribuir created_by. Nada disso depende de o cliente se comportar. O domínio (ciclo, offsets por equipe, segmento de madrugada, contadores) fica isolado em src/logic.js, puro, sem React e sem Supabase, coberto por 41 testes."
+  },
+  "en": {
+    "name": "Shifts and Days Off",
+    "pitch": "Puts each team's 12x24 and 12x72 rotation on a calendar and lets the officer click a day to claim their time off. Every entry records who created it and who last changed it, instead of being settled loosely in a group chat. Five teams run the same fixed cycle and none of them can see or touch another team's days.",
+    "note": "All authorization lives in the JWT's app_metadata, never in user_metadata, because user_metadata is writable by the user through supabase.auth.updateUser: self promotion to admin or a team swap would be one line away. A signup trigger copies the validated team into app_metadata, the admin role is only set by the admin_set_role RPC, and the INSERT and UPDATE policies use WITH CHECK on both sides so nobody can forge an owner or push a day off onto another team. A folgas_guard_update trigger also blocks an ordinary member from reassigning created_by. None of this depends on the client behaving. The domain (cycle, per-team offsets, the overnight segment, the counters) sits isolated in src/logic.js, pure, with no React and no Supabase, covered by 41 tests."
+  }
+}

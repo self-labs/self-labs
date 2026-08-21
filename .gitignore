@@ -1,0 +1,39 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+.astro/
+.output/
+
+# Wrangler e Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Grafo de conhecimento: derivado, regenerável e volumoso
+graphify-out/
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Logs e caches de ferramenta
+*.log
+npm-debug.log*
+.eslintcache
+.cache/
+coverage/
+.playwright-mcp/
+
+# Sistema operacional e editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

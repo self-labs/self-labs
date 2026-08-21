@@ -1,0 +1,31 @@
+{
+  "order": 19,
+  "featured": false,
+  "category": "aberto",
+  "status": "ativo",
+  "designator": "R2",
+  "org": "akitaonrails",
+  "repo": "https://github.com/akitaonrails/ai-memory",
+  "closed": false,
+  "stack": [
+    "Rust (edition 2024)",
+    "Cargo workspace, 10 crates",
+    "SQLite (rusqlite + refinery)",
+    "axum",
+    "rmcp (MCP SDK)",
+    "tokio",
+    "git2",
+    "reqwest",
+    "GitHub Actions"
+  ],
+  "pt": {
+    "name": "ai-memory",
+    "pitch": "Dá memória de longo prazo a agentes de código: você fecha o Claude Code no meio da tarefa, abre o Codex na mesma pasta e continua sem reexplicar arquitetura, tentativas que falharam e questões em aberto. O projeto é de Fabio Akita; o que entra aqui são três commits meus, aceitos no upstream, que consertam o caminho do Windows.",
+    "note": "No Windows os hooks eram emitidos como bash -c mais script .sh, então cada chamada de ferramenta pagava a partida do Git Bash e dos processos filhos cat, sed e curl. O commit 5e783b62 cria o subcomando nativo ai-memory hook e derruba esse custo de cerca de 735ms para cerca de 175ms por chamada. O detalhe fino está em duas escolhas: o comando é emitido com aspas duplas porque o Claude Code executa hooks pelo cmd.exe, que rejeita aspas simples POSIX enquanto aspas duplas funcionam nos dois shells, e a variável AI_MEMORY_HOOK_PLATFORM=windows-bash serve de escape para voltar ao Git Bash, com testes de paridade entre os dois caminhos. Os outros dois commits são correções de convivência: 48b941ea faz o install-hooks --apply sobrepor apenas as entradas do próprio ai-memory em vez de reescrever o array inteiro do evento, que apagava hooks de terceiros em silêncio a cada upgrade, e 9c3cf572 faz os hooks emitirem JSON no stdout, porque saída vazia dispara a mensagem de debug 'Hook output does not start with {' em rajadas de 5 a 7 linhas por chamada de ferramenta."
+  },
+  "en": {
+    "name": "ai-memory",
+    "pitch": "Gives coding agents long term memory: quit Claude Code mid task, open Codex in the same folder and carry on without re-explaining the architecture, the dead ends or the open questions. The project is Fabio Akita's; what shows up here are three commits of mine, merged upstream, that fix the Windows path.",
+    "note": "On Windows the hooks were emitted as bash -c plus a .sh script, so every tool call paid for a Git Bash startup and the cat, sed and curl child processes. Commit 5e783b62 adds the native ai-memory hook subcommand and drops that cost from roughly 735ms to roughly 175ms per call. The fine print is in two choices: the command is emitted with double quotes because Claude Code runs hooks through cmd.exe, which rejects POSIX single quotes while double quotes work in both shells, and AI_MEMORY_HOOK_PLATFORM=windows-bash is the escape hatch back to Git Bash, with parity tests across both paths. The other two commits are good neighbour fixes: 48b941ea makes install-hooks --apply overlay only ai-memory's own entries instead of rewriting the whole event array, which silently wiped third party hooks on every upgrade, and 9c3cf572 makes the Claude Code hooks emit JSON on stdout, because empty output triggers the 'Hook output does not start with {' debug message in bursts of five to seven lines per tool call."
+  }
+}

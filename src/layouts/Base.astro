@@ -1,0 +1,347 @@
+---
+/**
+ * Moldura unica da pagina: head, navegacao, trilha lateral e rodape.
+ *
+ * As fontes sao importadas do pacote, nunca de CDN em runtime. O site inteiro
+ * carrega de um dominio so, o que mantem a CSP simples e o site funcionando
+ * mesmo se a fonts.googleapis.com estiver fora do ar.
+ */
+/*
+ * Archivo entra pelo arquivo "wdth", nao pelo index: o index declara apenas o
+ * eixo de peso, e sem o eixo de largura todo font-stretch desta folha e aceito
+ * pelo parser e ignorado na renderizacao, em silencio. Os titulos dependem
+ * dessa largura variavel, entao o import certo importa.
+ *
+ * Manrope e JetBrains Mono tem so o eixo de peso, que e tudo que usamos neles.
+ */
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/app.css';
+
+import Trilha from '../components/Trilha.astro';
+import { ui, rota, type Locale } from '../i18n/ui';
+import { EMAIL } from '../i18n/contato';
+import lockup from '../assets/brand/lockup.svg?raw';
+
+interface Props {
+  locale: Locale;
+  versao: string;
+}
+
+const { locale, versao } = Astro.props;
+const t = ui[locale];
+const outro: Locale = locale === 'pt' ? 'en' : 'pt';
+
+const canonical = new URL(rota(locale), Astro.site).href;
+const alternativa = new URL(rota(outro), Astro.site).href;
+
+/**
+ * Dados estruturados. Descrevem uma pessoa que opera sob uma marca, que e o que
+ * o Self-Labs e de fato, em vez de fingir ser uma empresa com equipe.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Gustavo Cateim',
+  url: 'https://selflabs.org',
+  email: `mailto:${EMAIL}`,
+  jobTitle: locale === 'pt' ? 'Engenheiro de software' : 'Software engineer',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Vitória',
+    addressRegion: 'ES',
+    addressCountry: 'BR',
+  },
+  sameAs: ['https://github.com/CaTeIM', 'https://github.com/self-labs'],
+  worksFor: {
+    '@type': 'Organization',
+    name: 'Self-Labs',
+    url: 'https://selflabs.org',
+  },
+};
+
+const servicos = [
+  { rotulo: 'store', href: 'https://store.selflabs.org' },
+  { rotulo: 'radar', href: 'https://radar.selflabs.org' },
+  { rotulo: 'alferes', href: 'https://alferes.selflabs.org' },
+  { rotulo: 'pmes', href: 'https://pmes.selflabs.org' },
+  { rotulo: 'jordao', href: 'https://jordao.selflabs.org' },
+];
+---
+
+<!doctype html>
+<html lang={t.meta.idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.meta.titulo}</title>
+    <meta name="description" content={t.meta.descricao} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#20292E" />
+    <meta name="author" content="Gustavo Cateim" />
+
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={locale === 'pt' ? 'pt-BR' : 'en'} href={canonical} />
+    <link rel="alternate" hreflang={outro === 'pt' ? 'pt-BR' : 'en'} href={alternativa} />
+    <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site).href} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Self-Labs" />
+    <meta property="og:title" content={t.meta.titulo} />
+    <meta property="og:description" content={t.meta.descricao} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === 'pt' ? 'pt_BR' : 'en_US'} />
+    <meta property="og:image" content={new URL('/og.png', Astro.site).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <set:html value={`<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`} />
+  </head>
+
+  <body>
+    <a class="pular" href="#conteudo">{t.nav.pular}</a>
+
+    <Trilha secoes={t.nav.itens} locale={locale} />
+
+    <header class="topo">
+      <div class="topo-interno">
+        <a class="marca" href={rota(locale)} aria-label="Self-Labs">
+          <span class="marca-svg" set:html={lockup} />
+        </a>
+
+        <nav class="nav" aria-label={locale === 'pt' ? 'Seções da página' : 'Page sections'}>
+          <ul class="nav-lista">
+            {
+              t.nav.itens.map((item) => (
+                <li>
+                  <a href={`#${item.id}`}>{item.rotulo}</a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <a class="idioma" href={rota(outro)} hreflang={outro === 'pt' ? 'pt-BR' : 'en'} aria-label={t.meta.trocarIdiomaLabel}>
+          {t.meta.trocarIdioma}
+        </a>
+      </div>
+    </header>
+
+    <main id="conteudo">
+      <slot />
+    </main>
+
+    <footer class="rodape">
+      <div class="casca rodape-interno">
+        <div class="rodape-marca">
+          <span class="rodape-svg" set:html={lockup} />
+          <p class="rodape-linha">{t.rodape.direitos}</p>
+          <p class="rodape-linha rodape-fraco">{t.rodape.construido}</p>
+        </div>
+
+        <div class="rodape-col">
+          <h2 class="rodape-titulo">{t.rodape.servicos}</h2>
+          <ul class="rodape-links">
+            {
+              servicos.map((s) => (
+                <li>
+                  <a class="link-linha" href={s.href} rel="noopener">
+                    {s.rotulo}.selflabs.org
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="rodape-col">
+          <h2 class="rodape-titulo">GitHub</h2>
+          <ul class="rodape-links">
+            <li><a class="link-linha" href="https://github.com/CaTeIM" rel="noopener">github.com/CaTeIM</a></li>
+            <li><a class="link-linha" href="https://github.com/self-labs" rel="noopener">github.com/self-labs</a></li>
+            <li><a class="link-linha" href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="casca rodape-versao">
+        <span>{t.rodape.versaoLabel} {versao}</span>
+        <span aria-hidden="true">·</span>
+        <span>selflabs.org</span>
+      </div>
+    </footer>
+
+    <style>
+      .topo {
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 50;
+        background: color-mix(in srgb, var(--base) 86%, transparent);
+        backdrop-filter: blur(10px);
+        border-block-end: var(--borda) solid var(--linha);
+      }
+
+      .topo-interno {
+        max-width: var(--largura);
+        margin-inline: auto;
+        padding: var(--s3) var(--s5);
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+
+      @media (min-width: 60rem) {
+        .topo-interno {
+          padding-inline: var(--gutter) var(--s6);
+        }
+      }
+
+      .marca {
+        flex: none;
+        display: block;
+      }
+
+      .marca-svg :global(svg) {
+        height: 1.75rem;
+        width: auto;
+      }
+
+      .nav {
+        margin-inline-start: auto;
+        display: none;
+      }
+
+      @media (min-width: 48rem) {
+        .nav {
+          display: block;
+        }
+      }
+
+      .nav-lista {
+        display: flex;
+        gap: var(--s5);
+        font-family: var(--mono);
+        font-size: 0.8125rem;
+        letter-spacing: 0.04em;
+      }
+
+      .nav-lista a {
+        color: var(--texto-2);
+        padding-block: var(--s2);
+        border-block-end: var(--borda) solid transparent;
+        transition: color var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
+      }
+
+      .nav-lista a:hover {
+        color: var(--texto);
+        border-block-end-color: var(--ciano);
+      }
+
+      .idioma {
+        margin-inline-start: auto;
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding-inline: var(--s4);
+        border: var(--borda) solid var(--linha);
+        border-radius: var(--raio);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        color: var(--texto-2);
+        transition: color var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
+      }
+
+      @media (min-width: 48rem) {
+        .idioma {
+          margin-inline-start: 0;
+        }
+      }
+
+      .idioma:hover {
+        color: var(--ciano);
+        border-color: var(--linha-forte);
+      }
+
+      /* --------------------------------------------------------- rodape - */
+
+      .rodape {
+        position: relative;
+        z-index: 1;
+        margin-block-start: var(--s9);
+        border-block-start: var(--borda) solid var(--linha);
+        background: var(--poco);
+      }
+
+      .rodape-interno {
+        display: grid;
+        gap: var(--s7);
+        padding-block: var(--s8) var(--s6);
+      }
+
+      @media (min-width: 48rem) {
+        .rodape-interno {
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: var(--s6);
+        }
+      }
+
+      .rodape-svg :global(svg) {
+        height: 1.5rem;
+        width: auto;
+        margin-block-end: var(--s4);
+      }
+
+      .rodape-linha {
+        max-width: 46ch;
+        font-size: 0.875rem;
+        color: var(--texto-2);
+      }
+
+      .rodape-fraco {
+        margin-block-start: var(--s2);
+        color: var(--texto-3);
+      }
+
+      .rodape-titulo {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--texto-3);
+        margin-block-end: var(--s4);
+      }
+
+      .rodape-links {
+        display: grid;
+        /* Espaco entre alvos, para o dedo nao acertar o link vizinho. */
+        gap: var(--s2);
+      }
+
+      .rodape-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.25rem;
+      }
+
+      .rodape-versao {
+        display: flex;
+        gap: var(--s3);
+        padding-block: var(--s4) var(--s6);
+        border-block-start: var(--borda) solid var(--linha);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: var(--texto-3);
+      }
+    </style>
+  </body>
+</html>

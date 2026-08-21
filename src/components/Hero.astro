@@ -1,0 +1,273 @@
+---
+/**
+ * Hero.
+ *
+ * Duas coisas acontecem aqui e nenhuma e enfeite. A primeira: as 36 trilhas do
+ * isotipo acendem em cascata do centro para fora, na ordem que o script de marca
+ * calculou por distancia do nucleo (atributo --i). A placa parece energizar.
+ *
+ * A segunda: uma linha de ECG corre sob o bloco inteiro, sem parar. A tagline
+ * promete uptime, entao o sinal vital fica visivel na pagina em vez de so
+ * escrito. Esse traco e desenhado aqui, nao vem do logo.
+ */
+import { ui, type Locale } from '../i18n/ui';
+import isotipo from '../assets/brand/isotipo.svg?raw';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = ui[Astro.props.locale].hero;
+
+/**
+ * Um ciclo de ECG. Repetido lado a lado forma a faixa continua: linha de base,
+ * complexo QRS, onda T, linha de base de novo.
+ */
+const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 6 0 3 7 9 7 H120';
+---
+
+<section class="hero">
+  <div class="casca hero-grade">
+    <div class="hero-texto">
+      <p class="hero-kicker">
+        <span class="hero-ponto" aria-hidden="true"></span>
+        {t.kicker}
+      </p>
+
+      <h1 class="hero-titulo">{t.titulo}</h1>
+
+      <p class="hero-descricao">{t.texto}</p>
+
+      <div class="hero-acoes">
+        <a class="botao botao-primario" href="#projetos">
+          {t.acaoPrimaria}
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" />
+          </svg>
+        </a>
+        <a class="botao botao-secundario" href="#contato">{t.acaoSecundaria}</a>
+      </div>
+    </div>
+
+    <figure class="hero-figura">
+      <div class="hero-marca" set:html={isotipo} />
+      <figcaption class="oculto-visual">{t.legendaFigura}</figcaption>
+    </figure>
+  </div>
+
+  <!--
+    Sinal vital: corre sob o hero inteiro, de borda a borda.
+    O viewBox tem a largura de uma tela grande e os ciclos sao repetidos em
+    escala 1:1, para que as ondas nao achatem quando o SVG estica na horizontal.
+    Sao 13 ciclos: 12 cobrem a faixa e o 13o entra pela direita durante o loop.
+  -->
+  <div class="ecg" aria-hidden="true">
+    <svg class="ecg-svg" viewBox="0 0 1440 40" preserveAspectRatio="none" focusable="false">
+      <g class="ecg-fita">
+        {Array.from({ length: 13 }, (_, i) => <path d={CICLO} transform={`translate(${i * 120} 0)`} />)}
+      </g>
+    </svg>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: var(--s8) 0;
+    overflow: hidden;
+  }
+
+  @media (min-width: 60rem) {
+    .hero {
+      padding-block-start: var(--s9);
+    }
+  }
+
+  .hero-grade {
+    display: grid;
+    gap: var(--s7);
+    align-items: center;
+  }
+
+  @media (min-width: 60rem) {
+    .hero-grade {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: var(--s8);
+    }
+  }
+
+  /* ------------------------------------------------------------- texto - */
+
+  .hero-kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--texto-3);
+  }
+
+  .hero-ponto {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: var(--menta);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--menta) 55%, transparent);
+    animation: batida 2.4s var(--curva) infinite;
+  }
+
+  @keyframes batida {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--menta) 45%, transparent);
+    }
+    60%,
+    100% {
+      box-shadow: 0 0 0 0.5rem transparent;
+    }
+  }
+
+  .hero-titulo {
+    margin-block-start: var(--s5);
+    font-size: clamp(2.5rem, 1.2rem + 5.4vw, 4.75rem);
+    font-stretch: 96%;
+    letter-spacing: -0.025em;
+    line-height: 0.97;
+    text-wrap: balance;
+    max-width: 15ch;
+  }
+
+  .hero-descricao {
+    margin-block-start: var(--s5);
+    max-width: 54ch;
+    font-size: 1.0625rem;
+    color: var(--texto-2);
+  }
+
+  @media (min-width: 48rem) {
+    .hero-descricao {
+      font-size: 1.125rem;
+    }
+  }
+
+  .hero-acoes {
+    margin-block-start: var(--s6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+
+  /* ------------------------------------------------------------- marca - */
+
+  .hero-figura {
+    margin: 0;
+    justify-self: center;
+    width: min(20rem, 68vw);
+  }
+
+  @media (min-width: 60rem) {
+    .hero-figura {
+      width: min(24rem, 100%);
+    }
+  }
+
+  .hero-marca :global(svg) {
+    width: 100%;
+    height: auto;
+    /* O brilho e discreto: separa o simbolo do fundo sem virar neon. */
+    filter: drop-shadow(0 0 2.5rem color-mix(in srgb, var(--ciano) 16%, transparent));
+  }
+
+  /*
+   * A cascata. Cada trilha carrega --i, o proprio indice ordenado por distancia
+   * do centro, entao o atraso cresce do nucleo para a borda.
+   */
+  .hero-marca :global(.sl-trace) {
+    opacity: 0;
+    animation: acender 620ms var(--curva) forwards;
+    animation-delay: calc(var(--i, 0) * 24ms + 160ms);
+  }
+
+  @keyframes acender {
+    0% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 1;
+      filter: brightness(2.2);
+    }
+    100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+  }
+
+  /* A trilha do nucleo carrega a linha de batimento: ela continua pulsando. */
+  .hero-marca :global(#sl-core) {
+    animation:
+      acender 620ms var(--curva) forwards,
+      nucleo 3.2s var(--curva) 1.1s infinite;
+  }
+
+  @keyframes nucleo {
+    0%,
+    72%,
+    100% {
+      filter: brightness(1);
+    }
+    78% {
+      filter: brightness(1.75);
+    }
+  }
+
+  /* --------------------------------------------------------------- ecg - */
+
+  .ecg {
+    margin-block-start: var(--s8);
+    height: 3.5rem;
+    border-block-start: var(--borda) solid var(--linha);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ciano) 3%, transparent), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .ecg-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ecg-fita {
+    fill: none;
+    stroke: var(--menta);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.75;
+    animation: correr 9s linear infinite;
+  }
+
+  @keyframes correr {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-120px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-marca :global(.sl-trace) {
+      opacity: 1;
+      animation-delay: 0ms !important;
+    }
+
+    .hero-ponto {
+      animation: none;
+    }
+
+    .ecg-fita {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,30 @@
+{
+  "order": 4,
+  "featured": true,
+  "category": "produto",
+  "status": "producao",
+  "designator": "U4",
+  "link": "https://radar.selflabs.org",
+  "closed": true,
+  "stack": [
+    "TypeScript",
+    "Fastify 5",
+    "Drizzle ORM",
+    "PostgreSQL 15",
+    "Evolution GO",
+    "GramJS",
+    "Puppeteer",
+    "Satori + sharp",
+    "Gemini"
+  ],
+  "pt": {
+    "name": "Radar de Promo",
+    "pitch": "Captura promoção crua nos canais que vigia, reescreve o texto com IA, troca o link nu por link de afiliado oficial e dispara para uma rede de grupos de WhatsApp e um canal de Telegram, sem ninguém no meio. Quando um grupo bate o teto de membros, o próximo é criado e o convite que já está circulando passa a apontar para ele.",
+    "note": "Nenhuma API da Meta publica figurinha de link no Story, então um Puppeteer headful sob Xvfb dirige o Meta Business Suite já logado e publica no Instagram e no Facebook de uma vez. O sticker certo só existe em Editar > Figurinhas > Link, porque o botão 'Adicionar link' ao lado é o swipe-up, que a própria Meta avisa não valer para o Instagram; e o container dele mede 0x0, então a caixa real precisa ser reconstruída a partir das três alças. Depois do 'Compartilhar' a página navega e destrói o contexto: o erro 'Execution context was destroyed' é o sinal de sucesso, não de falha. Onde deu para matar o browser, matou: a Amazon virou getShortUrl por HTTP com o cookie do painel de Associados e o Mercado Livre virou createLink, os dois sem Chromium."
+  },
+  "en": {
+    "name": "Radar de Promo",
+    "pitch": "Picks up raw deals from the channels it watches, rewrites the copy with an LLM, swaps the bare URL for a real affiliate link and pushes it to a network of WhatsApp groups and a Telegram channel with nobody in the loop. When a group hits its member cap, the next one is created and the invite already going around starts pointing there.",
+    "note": "No Meta API publishes a link sticker to a Story, so a headful Puppeteer under Xvfb drives an already logged in Meta Business Suite and posts to Instagram and Facebook in one shot. The right sticker only lives under Edit > Stickers > Link, because the 'Add link' button next to it is the swipe-up that Meta itself flags as not supported on Instagram; and its container measures 0x0, so the real box has to be rebuilt from the three handles. After 'Share' the page navigates away and tears down the context, which means 'Execution context was destroyed' is the success signal, not a failure. Where the browser could be killed, it was killed: Amazon became a plain HTTP getShortUrl call with the Associates panel cookie, and Mercado Livre became createLink, both Chromium free."
+  }
+}

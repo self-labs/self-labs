@@ -1,0 +1,54 @@
+name: Atualizar números
+
+# A barra de prova mostra commits, PRs aceitos e meses de operação. Se esses
+# valores ficarem parados no dia em que a página foi escrita, viram mentira em
+# poucos meses. Toda segunda de manhã o job relê a API do GitHub e, quando algo
+# mudou de verdade, commita o arquivo. O commit dispara o workflow de deploy.
+on:
+  schedule:
+    # 09:00 UTC de segunda, que é 06:00 em Vitória.
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: stats
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    name: Reler a API do GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Buscar estatísticas
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # O script nunca falha o job: se a API cair ou o resultado vier
+        # incoerente com o anterior, ele mantém o arquivo atual e sai com 0.
+        run: node scripts/fetch-stats.mjs
+
+      - name: Commitar se mudou
+        run: |
+          if git diff --quiet -- src/data/stats.json; then
+            echo "Nenhuma mudança nos números. Nada a fazer."
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/stats.json
+          git commit -m "chore(stats): atualiza números da barra de prova
+
+          Gerado por scripts/fetch-stats.mjs a partir da API do GitHub."
+          git push
+          echo "Números atualizados. O push dispara o deploy."

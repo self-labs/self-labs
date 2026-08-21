@@ -1,0 +1,63 @@
+name: Deploy
+
+# Push na master publica o site. Nenhum passo manual, nenhum SSH.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  # Um deploy por vez. Push em sequencia cancela o anterior, que ainda nao
+  # chegou no ar, em vez de correr os dois e publicar o mais lento por ultimo.
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    name: Testar e publicar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar tipos
+        run: npm run check
+
+      - name: Testar conteudo
+        # Segura as regras editoriais: pontuacao proibida, assunto fora de
+        # escopo, par de traducao faltando, designator repetido.
+        run: npm test
+
+      - name: Construir
+        env:
+          # Sobe o limite da API do GitHub de 60 para 5000 chamadas por hora, o
+          # que importa porque o build conta commits repositorio a repositorio.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      - name: Publicar no Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Conferir se o site respondeu
+        # Publicar sem erro nao prova que o apex esta servindo. Uma checagem de
+        # dez segundos separa "o deploy rodou" de "o site esta no ar".
+        run: |
+          sleep 10
+          codigo=$(curl -s -o /dev/null -w '%{http_code}' https://selflabs.org/)
+          echo "selflabs.org respondeu $codigo"
+          test "$codigo" = "200"

@@ -1,0 +1,185 @@
+---
+/**
+ * Contato.
+ *
+ * Dois canais e nenhum formulario, e isso e uma decisao de coerencia, nao de
+ * preguica: a secao ao lado promete que nada roda sem necessidade e que dado
+ * pessoal nao fica guardado a toa. Um formulario exigiria endpoint, guardaria o
+ * texto de quem escreve, atrairia spam e produziria no fim o mesmo e-mail que o
+ * link ja produz.
+ *
+ * O botao do WhatsApp so aparece quando ha numero configurado em i18n/contato.ts.
+ */
+import { ui, type Locale } from '../i18n/ui';
+import { EMAIL, linkWhatsapp } from '../i18n/contato';
+
+interface Props {
+  locale: Locale;
+}
+
+const locale = Astro.props.locale;
+const t = ui[locale].contato;
+const whatsapp = linkWhatsapp(locale);
+---
+
+<section class="secao" id="contato">
+  <div class="casca">
+    <div class="contato">
+      <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+      <h2 class="titulo-secao contato-titulo">{t.titulo}</h2>
+      <p class="subtitulo-secao">{t.texto}</p>
+
+      <div class="canais">
+        <a class="canal canal-principal" href={`mailto:${EMAIL}`} aria-label={t.emailLabel}>
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
+            <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+            <path d="m3.5 6 6.5 4.5L16.5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <span class="canal-texto">
+            <span class="canal-rotulo">{t.canais.email}</span>
+            <span class="canal-valor">{EMAIL}</span>
+          </span>
+        </a>
+
+        {
+          whatsapp && (
+            <a class="canal" href={whatsapp} rel="noopener" aria-label={t.canais.whatsappLabel}>
+              <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
+                <path
+                  d="M3.6 16.4l.9-3.2a6.5 6.5 0 1 1 2.4 2.3l-3.3.9Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M7.8 7.6c.2 1.6 2 3.4 3.6 3.6.5.1 1-.3 1.2-.8l-1.3-.7-.6.6c-.7-.3-1.3-.9-1.6-1.6l.6-.6-.7-1.3c-.5.2-.9.6-.8 1.2Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span class="canal-texto">
+                <span class="canal-rotulo">{t.canais.whatsapp}</span>
+                <span class="canal-valor">{t.canais.whatsappNota}</span>
+              </span>
+            </a>
+          )
+        }
+      </div>
+
+      <ul class="contato-links">
+        {
+          t.links.map((l) => (
+            <li>
+              <a class="link-linha" href={l.href} rel="noopener">
+                {l.rotulo}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contato {
+    position: relative;
+    padding: var(--s7) var(--s5);
+    border: var(--borda) solid var(--linha);
+    border-radius: var(--raio);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--ciano) 7%, transparent), transparent 62%),
+      var(--poco);
+    overflow: hidden;
+  }
+
+  @media (min-width: 48rem) {
+    .contato {
+      padding: var(--s8);
+    }
+  }
+
+  .contato-titulo {
+    max-width: 18ch;
+  }
+
+  .canais {
+    margin-block-start: var(--s6);
+    display: grid;
+    gap: var(--s3);
+  }
+
+  @media (min-width: 40rem) {
+    .canais {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, max-content));
+    }
+  }
+
+  .canal {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    min-height: 2.75rem;
+    padding: var(--s4) var(--s5);
+    border: var(--borda) solid var(--linha);
+    border-radius: var(--raio);
+    background: color-mix(in srgb, var(--base) 60%, transparent);
+    color: var(--texto-2);
+    transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva),
+      background var(--rapido) var(--curva);
+  }
+
+  .canal:hover {
+    border-color: var(--linha-forte);
+    background: var(--alto);
+    color: var(--texto);
+  }
+
+  /*
+   * O e-mail e o canal principal e o unico em cor cheia. O WhatsApp fica no tom
+   * secundario de proposito: e um numero pessoal, e o peso visual do botao diz
+   * a quem chega qual dos dois abrir primeiro.
+   */
+  .canal-principal {
+    border-color: color-mix(in srgb, var(--menta) 45%, transparent);
+    color: var(--texto);
+  }
+
+  .canal-principal:hover {
+    border-color: var(--menta);
+  }
+
+  .canal svg {
+    flex: none;
+    color: var(--menta);
+  }
+
+  .canal-texto {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .canal-rotulo {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--texto-3);
+  }
+
+  .canal-valor {
+    font-family: var(--mono);
+    font-size: 0.875rem;
+  }
+
+  .contato-links {
+    margin-block-start: var(--s6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3) var(--s6);
+  }
+
+  /* Altura minima de alvo apontavel, sem transformar o link em botao. */
+  .contato-links a {
+    min-height: 2.25rem;
+  }
+</style>

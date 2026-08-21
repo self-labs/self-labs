@@ -1,0 +1,32 @@
+{
+  "order": 6,
+  "featured": true,
+  "category": "aberto",
+  "status": "ativo",
+  "designator": "U6",
+  "org": "CaTeIM",
+  "link": "https://cateim.github.io/DIY/",
+  "repo": "https://github.com/CaTeIM/DIY",
+  "closed": false,
+  "stack": [
+    "Docker Compose",
+    "Portainer",
+    "Cloudflare Tunnel e Zero Trust",
+    "Caddy (forward-auth)",
+    "Authelia + lldap",
+    "Home Assistant, Mosquitto, Node-RED, ESPHome",
+    "Tasmota em ESP8266 e ESP32",
+    "Forgejo + Forgejo Actions",
+    "Debian e Orange Pi 5 (ARM64)"
+  ],
+  "pt": {
+    "name": "DIY na Prática",
+    "pitch": "Reúne 27 guias em português de self-hosting e automação residencial, do Portainer no Debian ao Home Assistant, cada um com a stack Docker pronta para colar no Portainer. Nasceu de um incômodo prático: parar de refazer a mesma pesquisa toda vez que um serviço precisa ser reinstalado.",
+    "note": "Não é um amontoado de tutoriais. A convenção está formalizada no CLAUDE.md e as 18 stacks obedecem a ela: restart unless-stopped em vez de always, no-new-privileges:true, bind mount em /srv/<serviço> no lugar de volume nomeado, segredo só por interpolação, TZ America/Sao_Paulo, healthcheck no banco com depends_on condition service_healthy e um banco por stack em vez de um Postgres compartilhado. Os guias documentam a armadilha que de fato quebra a instalação: criar as pastas de /srv por SSH antes de subir a stack, senão o Docker cria como root e o container que roda sem root não escreve. A regra do Cloudflare Tunnel é igualmente específica, porque o cloudflared roda bare metal no host e não faz parte da stack: a Cloudflare termina o TLS e o container serve HTTP puro, então a variável de URL pública aponta para https enquanto o protocolo interno continua http. O guia mais denso é o de backup da Orange Pi 5, que cobre justamente o que o Timeshift não pega, o bootloader no SPI NOR e os setores brutos do NVMe, em quatro cenários de desastre."
+  },
+  "en": {
+    "name": "DIY in Practice",
+    "pitch": "Collects 27 Portuguese-language guides on self-hosting and home automation, from Portainer on Debian to Home Assistant, each one shipping the Docker stack ready to paste into Portainer. It started from a practical annoyance: not redoing the same research every time a service has to be reinstalled.",
+    "note": "This is not a pile of tutorials. The convention is written down in CLAUDE.md and all 18 stacks follow it: restart unless-stopped rather than always, no-new-privileges:true, bind mounts under /srv/<service> instead of named volumes, secrets only through interpolation, TZ America/Sao_Paulo, a database healthcheck gated by depends_on condition service_healthy, and one database per stack instead of a shared Postgres. The guides document the trap that actually breaks an install: create the /srv folders over SSH before deploying the stack, or Docker creates them as root and the non-root container cannot write. The Cloudflare Tunnel rule is just as specific, because cloudflared runs bare metal on the host and is not part of the stack: Cloudflare terminates TLS and the container serves plain HTTP, so the public URL variable points at https while the internal protocol stays http. The densest guide covers backing up an Orange Pi 5, aimed squarely at what Timeshift misses, the bootloader in SPI NOR and the raw NVMe sectors, across four disaster scenarios."
+  }
+}

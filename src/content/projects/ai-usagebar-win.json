@@ -1,0 +1,29 @@
+{
+  "order": 13,
+  "featured": false,
+  "category": "aberto",
+  "status": "ativo",
+  "designator": "Q7",
+  "repo": "https://github.com/CaTeIM/ai-usagebar-win",
+  "closed": false,
+  "stack": [
+    "C#",
+    ".NET 8",
+    "WPF",
+    "WPF-UI 4.3.0",
+    "H.NotifyIcon",
+    "Tomlyn",
+    "PowerShell",
+    "GitHub Actions"
+  ],
+  "pt": {
+    "name": "ai-usagebar-win",
+    "pitch": "Mostra na bandeja do Windows quanto da cota do Claude, do Codex e dos outros planos de IA você já gastou, antes de o agente parar de responder no meio da tarefa. Já existia um medidor para isso, o CLI Rust ai-usagebar, mas ele nasceu para Waybar, GNOME e macOS. Aqui é um único .exe que roda em máquina limpa, sem instalar Rust nem rodar cargo install.",
+    "note": "O app não reimplementa nada do backend: ele executa ai-usagebar usage --json e só desenha. Como a versão do CLI é deliberadamente não fixada, existe um script de contrato (scripts/check-cli-contract.ps1) que compara o JSON real contra os campos de Interop.cs, as severidades de SeverityRules e os tipos de seção do Renderer, e o workflow de release quebra se o contrato mudou. Isso ataca a falha silenciosa certa: System.Text.Json ignora campo desconhecido e zera campo ausente, então um rename lá em cima apareceria como fornecedor saudável sem barra nenhuma, não como erro. O binário Rust entra como EmbeddedResource condicional no .csproj e é extraído para %LOCALAPPDATA% na primeira execução gravando em .tmp e movendo por cima, para nunca existir um executável pela metade. A cópia embutida vence de propósito o que estiver no PATH, então todo mundo roda exatamente a versão que aquele release testou."
+  },
+  "en": {
+    "name": "ai-usagebar-win",
+    "pitch": "Puts your Claude, Codex and other AI plan quotas in the Windows tray, so you see the limit coming before the agent goes quiet mid task. A meter already existed, the ai-usagebar Rust CLI, but it was built for Waybar, GNOME and macOS. This is one .exe that works on a clean machine, with no Rust and no cargo install.",
+    "note": "The app reimplements none of the backend: it runs ai-usagebar usage --json and only renders. Because the CLI version is deliberately unpinned, a contract script (scripts/check-cli-contract.ps1) diffs the CLI's real JSON against the fields in Interop.cs, the severities in SeverityRules and the section types in Renderer, and the release workflow breaks the moment the contract moves. That targets the right silent failure: System.Text.Json ignores unknown fields and zeroes missing ones, so an upstream rename would surface as a healthy provider with no bars instead of an error. The Rust binary is a conditional EmbeddedResource in the .csproj, extracted to %LOCALAPPDATA% on first run by writing a .tmp file and moving it over the target, so a half written executable never exists. The bundled copy deliberately beats whatever sits on PATH, so everyone runs the exact version that release was tested against."
+  }
+}

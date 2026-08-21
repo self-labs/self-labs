@@ -1,0 +1,28 @@
+{
+  "order": 11,
+  "featured": false,
+  "category": "infra",
+  "status": "producao",
+  "designator": "Q5",
+  "closed": true,
+  "stack": [
+    "OpenWrt 24.10.4 (Xiaomi AX3000T)",
+    "openNDS",
+    "PHP 8 (CGI sob uhttpd)",
+    "SQLite3 com WAL",
+    "Shell POSIX (ash)",
+    "Cloudflare Workers + KV",
+    "Telegram Bot API",
+    "Mercado Pago (Pix)"
+  ],
+  "pt": {
+    "name": "Captive Portal WiFi",
+    "pitch": "Vende e controla acesso WiFi por voucher rodando dentro do próprio roteador OpenWrt, sem servidor RADIUS, sem PC ligado e sem ninguém de plantão entregando senha na mão. O cliente escolhe o plano no Telegram, paga por Pix e recebe o código sozinho, inclusive de madrugada. Feito para alojamento, pousada e evento, onde o hóspede troca toda semana.",
+    "note": "O monitor de internet não confia em um alvo só. O cron testa três destinos independentes, o status.txt do próprio portal, o generate_204 do Google e o trace do 1.1.1.1, com três tentativas e backoff em cada um, e só considera o local offline quando todos falham no mesmo ciclo, o que separa uma queda do próprio portal de uma queda real do link. Mesmo assim o administrador só é avisado depois de três ciclos consecutivos de falha total, um debounce explícito contra soluço momentâneo de rede. A mesma cabeça aparece no watchdog do roteador, que lê o fuso do uci e exporta TZ antes de qualquer coisa, porque o ambiente do crond não herda fuso e o datetime local do SQLite acabaria expirando voucher até três horas antes da hora certa."
+  },
+  "en": {
+    "name": "WiFi Captive Portal",
+    "pitch": "Sells and controls WiFi access by voucher from inside the OpenWrt router itself, with no RADIUS server, no PC left running and nobody on duty handing out passwords. The customer picks a plan on Telegram, pays by Pix and gets the code on their own, three in the morning included. Built for hostels, guesthouses and events, where the guest list turns over every week.",
+    "note": "The internet monitor does not trust a single target. The cron job probes three independent endpoints, the portal's own status.txt, Google's generate_204 and the trace on 1.1.1.1, with three attempts and backoff on each, and only calls the site offline when all of them fail in the same cycle, which tells a dead portal apart from a genuinely dead link. Even then the admin is only paged after three consecutive cycles of total failure, an explicit debounce against a momentary network hiccup. The same thinking shows up in the router watchdog, which reads the timezone from uci and exports TZ before anything else, because the crond environment inherits no timezone and SQLite's local datetime would end up expiring vouchers up to three hours early."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "order": 17,
+  "featured": false,
+  "category": "cliente",
+  "status": "entregue",
+  "designator": "Q11",
+  "closed": true,
+  "stack": [
+    "ScriptCase",
+    "SQL Server 2019 Express",
+    "PHP 8.2 + Apache",
+    "msodbcsql18",
+    "sqlsrv + pdo_sqlsrv 5.12.0",
+    "Docker Compose",
+    "Portainer CE",
+    "Bash + cron",
+    "Ubuntu 20.04"
+  ],
+  "pt": {
+    "name": "Stack helpgas",
+    "pitch": "Coloca um sistema legado em ScriptCase e SQL Server 2019 dentro de containers, com deploy pelo Portainer direto do Git, num servidor onde ninguém entra por SSH no dia a dia. Junto vem a rotina de backup que faltava, terminando num SSD externo montado só na hora de gravar.",
+    "note": "A migração de PHP 7.4 para 8.2 foi feita em paralelo, não por substituição: dois Dockerfiles convivem no repositório e o serviço antigo (web-old, porta 8090, volume html_old) ficou comentado no compose como rollback de um comando. No backup, em vez de carregar a senha do SA dentro de um script de shell, foi criado um login dedicado com o papel mínimo db_backupoperator. O ciclo do cron monta o SSD, gera o .bak, compacta em tar.bz2, copia e desmonta, com retenção separada de 180 dias no disco local e 365 dias no SSD. O SSD passa o resto do tempo desmontado, o que o protege de escrita acidental e de ransomware, que só alcança o que está montado."
+  },
+  "en": {
+    "name": "helpgas Stack",
+    "pitch": "Wraps a legacy ScriptCase and SQL Server 2019 system in containers, deployed by Portainer straight from Git, on a server nobody logs into over SSH day to day. It also brings the backup routine that was missing, ending on an external SSD mounted only while it is being written.",
+    "note": "The PHP 7.4 to 8.2 migration ran in parallel rather than as a swap: two Dockerfiles live in the repo and the old service (web-old, port 8090, html_old volume) stayed commented out in the compose file as a one command rollback. For backups, instead of carrying the SA password inside a shell script, a dedicated login was created with the minimum db_backupoperator role. The cron cycle mounts the SSD, writes the .bak, compresses to tar.bz2, copies and unmounts, with separate retention of 180 days on local disk and 365 days on the SSD. The SSD spends the rest of its life unmounted, which protects it from an accidental write and from ransomware, which only reaches what is mounted."
+  }
+}

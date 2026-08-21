@@ -1,0 +1,30 @@
+{
+  "order": 12,
+  "featured": false,
+  "category": "cliente",
+  "status": "entregue",
+  "designator": "Q6",
+  "link": "https://jordao.selflabs.org",
+  "closed": true,
+  "stack": [
+    "JavaScript + JSDoc",
+    "esbuild",
+    "PWA",
+    "Cloudflare Pages Functions",
+    "Supabase",
+    "MapLibre GL JS",
+    "Google Routes API",
+    "Playwright",
+    "Wrangler"
+  ],
+  "pt": {
+    "name": "Prospecção Jordão",
+    "pitch": "Dá ao vendedor externo um app de celular que acha marmorarias por cidade e CNAE, traça a rota de carro até cada uma e registra o contato feito. Substitui a planilha com o Google Maps aberto em outra aba, onde ninguém sabia quem já tinha sido visitado nem a que distância a empresa ficava da base.",
+    "note": "Nenhuma chamada cara sai do navegador. As Pages Functions concentram a cascata de enriquecimento de CNPJ (cnpja, BrasilAPI, ReceitaWS em functions/_lib/cnpj-cascade.js) e a de geocodificação (LocationIQ, OpenCage, Google Places), tudo atrás de um gate de JWT do Supabase com autorização por empresa em functions/_lib/authz.js. O teto de consumo das APIs pagas foi resolvido sem escrever código, com regras de rate limiting no WAF da Cloudflare, e a documentação registra até a limitação do plano Free: uma regra ativa, janela de 10 segundos. O mapa desenha a rota de carro real e a polyline fica cacheada no banco, com refetch só para os registros antigos que guardavam apenas a distância."
+  },
+  "en": {
+    "name": "Jordão Prospecting",
+    "pitch": "Gives the field sales rep a phone app that finds stone shops by city and industry code, draws the driving route to each one and logs the visit. It replaces the spreadsheet with Google Maps open in another tab, where nobody knew who had already been called on or how far the shop actually was from base.",
+    "note": "No expensive call ever leaves the browser. The Pages Functions hold the CNPJ enrichment cascade (cnpja, BrasilAPI, ReceitaWS in functions/_lib/cnpj-cascade.js) and the geocoding cascade (LocationIQ, OpenCage, Google Places), all behind a Supabase JWT gate with per-company authorization in functions/_lib/authz.js. The spend ceiling on the paid APIs was solved without code, using rate limiting rules in the Cloudflare WAF, and the docs even record the Free plan limit: one active rule, ten second window. The map draws the real driving route and caches the polyline in the database, refetching only the old rows that stored distance alone."
+  }
+}

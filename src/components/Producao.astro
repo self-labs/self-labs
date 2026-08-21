@@ -1,0 +1,167 @@
+---
+/**
+ * Como o software chega em producao.
+ *
+ * Aqui a numeracao encode uma sequencia real: cada etapa so acontece depois da
+ * anterior, e a ordem carrega informacao. A trilha que liga as etapas e a mesma
+ * linguagem grafica da coluna lateral, fechando o sistema.
+ */
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = ui[Astro.props.locale].producao;
+---
+
+<section class="secao" id="producao">
+  <div class="casca">
+    <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
+    <h2 class="titulo-secao">{t.titulo}</h2>
+    <p class="subtitulo-secao">{t.subtitulo}</p>
+
+    <ol class="fluxo">
+      {
+        t.etapas.map((etapa, i) => (
+          <li class="etapa">
+            <div class="etapa-no" aria-hidden="true">
+              <span class="etapa-ponto" />
+            </div>
+            <div class="etapa-corpo">
+              <p class="etapa-rotulo">
+                <span class="etapa-num">{String(i + 1).padStart(2, '0')}</span>
+                {etapa.rotulo}
+              </p>
+              <p class="etapa-texto">{etapa.texto}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="fluxo-nota">{t.nota}</p>
+  </div>
+</section>
+
+<style>
+  .fluxo {
+    margin-block-start: var(--s7);
+    display: grid;
+    gap: 0;
+  }
+
+  @media (min-width: 62rem) {
+    .fluxo {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--s4);
+    }
+  }
+
+  .etapa {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: var(--s4);
+  }
+
+  @media (min-width: 62rem) {
+    .etapa {
+      grid-template-columns: none;
+      gap: var(--s4);
+    }
+  }
+
+  /* Trecho de trilha ligando um no ao proximo. */
+  .etapa-no {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-block-start: 0.4rem;
+  }
+
+  .etapa-no::before {
+    content: '';
+    position: absolute;
+    inset-block: 1.1rem -0.4rem;
+    inset-inline-start: calc(50% - 0.5px);
+    width: 1px;
+    background: var(--linha);
+  }
+
+  .etapa:last-child .etapa-no::before {
+    display: none;
+  }
+
+  @media (min-width: 62rem) {
+    .etapa-no {
+      justify-content: flex-start;
+      padding-block-start: 0;
+      height: 0.75rem;
+      align-items: center;
+    }
+
+    .etapa-no::before {
+      inset-block: auto;
+      inset-inline: 1rem -1.5rem;
+      height: 1px;
+      width: auto;
+    }
+  }
+
+  .etapa-ponto {
+    position: relative;
+    z-index: 1;
+    width: 0.6875rem;
+    height: 0.6875rem;
+    border: 1.5px solid var(--menta);
+    border-radius: 50%;
+    background: var(--base);
+    flex: none;
+  }
+
+  .etapa-corpo {
+    padding-block-end: var(--s6);
+  }
+
+  @media (min-width: 62rem) {
+    .etapa-corpo {
+      padding-block: var(--s4) 0;
+    }
+  }
+
+  .etapa-rotulo {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s2);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--texto);
+  }
+
+  .etapa-num {
+    color: var(--texto-3);
+    font-size: 0.6875rem;
+  }
+
+  .etapa-texto {
+    margin-block-start: var(--s2);
+    font-size: 0.875rem;
+    color: var(--texto-2);
+    max-width: 34ch;
+  }
+
+  .fluxo-nota {
+    margin-block-start: var(--s5);
+    padding: var(--s4) var(--s5);
+    border: var(--borda) dashed var(--linha-forte);
+    border-radius: var(--raio);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--texto-2);
+  }
+</style>

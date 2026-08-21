@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "selflabs-site",
+  "compatibility_date": "2026-08-01",
+
+  // Worker sem script: so serve os arquivos estaticos gerados pelo Astro.
+  // Nao ha codigo de runtime nenhum nesta pagina, entao nao ha "main".
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+
+  // O apex estava livre na zona selflabs.org: os outros 38 registros sao
+  // subdominios apontando para tuneis do homelab e da VPS.
+  "routes": [
+    { "pattern": "selflabs.org", "custom_domain": true },
+    { "pattern": "www.selflabs.org", "custom_domain": true }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}
