@@ -106,9 +106,22 @@ work is the worst failure this page could have.
 - **`body` uses `overflow-x: clip`, not `hidden`.** `hidden` turns the body into a
   scroll container, which silently kills `scroll-behavior: smooth` on `html` and
   makes every anchor jump. This already happened once.
-- **Anchor navigation is animated in JS**, in `Trilha.astro`, because native
-  smooth scrolling is ignored by several browsers and by every automated one.
-  It reads `scroll-padding-top` so its destination is exactly the CSS snap point.
+- **Anchor navigation uses NATIVE smooth scrolling**, driven from `Trilha.astro`.
+  An earlier version animated frame by frame with `requestAnimationFrame` and had
+  a defect that only shows on a real device: rAF is throttled when the tab loses
+  focus, when the phone enters battery saving, or under load. Measured here in a
+  throttled environment it dropped to 1 frame per second, turning a 900ms
+  animation into two jumps. Native scrolling runs on the compositor and does not
+  suffer from that. The JavaScript remains only for what CSS cannot do: subtract
+  the header height explicitly, suspend snapping during the trip, and update the
+  URL without the browser jumping.
+- **Narrow screens get a `<dialog>` menu**, in `MenuMobile.astro`. Never declare
+  `display` on that dialog: a closed `<dialog>` is `display: none` by browser
+  rule, and overriding it leaves the panel visible on screen permanently. This
+  already happened once. What hides above 48rem is the trigger button.
+- **Body copy is justified with `hyphens: auto`**, never justified alone.
+  Justifying a narrow column without hyphenation produces rivers of whitespace.
+  Hyphenation only works because `<html lang>` carries the right language.
 - **`--folga-ancora` is the single source** for the sticky header offset. CSS and
   the navigation script both read it. Changing it in one place is enough.
 - **Scroll snap is `proximity`, never `mandatory`.** With `mandatory`, the

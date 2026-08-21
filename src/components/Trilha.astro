@@ -257,85 +257,63 @@ const { secoes } = Astro.props;
   /**
    * Ilha 3 de 3: navegacao ponto a ponto entre secoes.
    *
-   * Por que animar aqui em vez de deixar com o CSS: "scroll-behavior: smooth" e
-   * respeitado de forma desigual. Alguns navegadores e praticamente todo ambiente
-   * automatizado o ignoram e entregam um salto seco, que foi o defeito relatado.
-   * Animar por conta propria torna a rolagem identica em qualquer lugar, e ainda
-   * permite descontar a altura real do cabecalho, que muda com a largura da tela.
+   * Usa o scroll suave NATIVO, nao uma animacao quadro a quadro em
+   * requestAnimationFrame. A primeira versao daqui animava a mao, e isso tem um
+   * defeito que so aparece no aparelho de verdade: o rAF e estrangulado quando a
+   * aba perde foco, quando o aparelho entra em economia de bateria ou quando o
+   * navegador esta sob carga. Medido neste projeto num ambiente estrangulado, o
+   * rAF caiu para 1 quadro por segundo, e a animacao de 900ms virou dois saltos.
+   * O scroll nativo roda no compositor do navegador e nao sofre disso.
    *
-   * A animacao e cancelada assim que a pessoa roda o mouse ou toca na tela: o
-   * gesto dela sempre vence a animacao.
+   * O JavaScript aqui existe por tres motivos que o CSS sozinho nao cobre:
+   * descontar a altura do cabecalho de forma explicita, desligar o encaixe
+   * durante a viagem, e atualizar a URL sem provocar o pulo do navegador.
    */
   (() => {
     const html = document.documentElement;
     const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
-
-    let animacao = 0;
-
-    const cancelar = () => {
-      if (!animacao) return;
-      cancelAnimationFrame(animacao);
-      animacao = 0;
-      html.style.scrollSnapType = '';
-    };
-
-    // Aceleracao simetrica: sai devagar, ganha velocidade, encosta devagar.
-    const suavizar = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+    const suportaSuave = 'scrollBehavior' in html.style;
 
     /*
      * A folga vem do proprio CSS (scroll-padding-top), nao de uma medicao do
-     * cabecalho. Assim o destino da animacao e exatamente o ponto de encaixe que
-     * o scroll-snap usaria, e a rolagem nao termina com um ajuste visivel.
+     * cabecalho, para que o destino coincida exatamente com o ponto de encaixe
+     * que o scroll-snap usaria. Sem isso a rolagem termina com um ajuste visivel.
      */
     const folgaAncora = () => Number.parseFloat(getComputedStyle(html).scrollPaddingTop) || 88;
 
+    let restaurarEncaixe = 0;
+
     const irPara = (secao: HTMLElement) => {
-      const folga = folgaAncora();
       const destino = Math.max(
         0,
         Math.min(
-          secao.getBoundingClientRect().top + window.scrollY - folga,
+          secao.getBoundingClientRect().top + window.scrollY - folgaAncora(),
           html.scrollHeight - window.innerHeight,
         ),
       );
-      const partida = window.scrollY;
-      const distancia = destino - partida;
 
-      if (semMovimento.matches || Math.abs(distancia) < 2) {
+      if (semMovimento.matches || !suportaSuave) {
         window.scrollTo(0, destino);
         return;
       }
 
-      cancelar();
-      // O encaixe brigaria com a animacao quadro a quadro, entao sai de cena
-      // durante a viagem e volta assim que ela termina.
+      /*
+       * O encaixe por proximidade briga com a rolagem em curso e pode puxar a
+       * pagina para o marco anterior no meio do caminho. Sai de cena durante a
+       * viagem e volta depois. O tempo e generoso porque nao ha evento confiavel
+       * de "a rolagem suave terminou" em todos os navegadores.
+       */
+      clearTimeout(restaurarEncaixe);
       html.style.scrollSnapType = 'none';
-
-      // Percurso longo nao pode levar tempo proporcional, senao a pagina inteira
-      // vira uma viagem de varios segundos. Cresce com a raiz e para em 900ms.
-      const duracao = Math.min(900, Math.max(340, Math.sqrt(Math.abs(distancia)) * 26));
-      const inicio = performance.now();
-
-      const passo = (agora: number) => {
-        const t = Math.min(1, (agora - inicio) / duracao);
-        window.scrollTo(0, partida + distancia * suavizar(t));
-        if (t < 1) {
-          animacao = requestAnimationFrame(passo);
-          return;
-        }
-        animacao = 0;
+      restaurarEncaixe = window.setTimeout(() => {
         html.style.scrollSnapType = '';
-      };
+      }, 1200);
 
-      animacao = requestAnimationFrame(passo);
+      window.scrollTo({ top: destino, behavior: 'smooth' });
     };
 
-    for (const evento of ['wheel', 'touchstart', 'keydown']) {
-      addEventListener(evento, cancelar, { passive: true });
-    }
-
-    // Vale para o menu do cabecalho, para as vias da trilha e para os botoes do
-    // hero: qualquer link que aponte para uma ancora desta pagina.
+    // Vale para o menu do cabecalho, para o menu do celular, para as vias da
+    // trilha e para os botoes do hero: qualquer link que aponte para uma ancora.
     addEventListener('click', (evento) => {
       const link = (evento.target as HTMLElement)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
       if (!link) return;

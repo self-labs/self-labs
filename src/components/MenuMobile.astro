@@ -1,0 +1,302 @@
+---
+/**
+ * Menu de navegacao para telas estreitas.
+ *
+ * No celular a pagina e longa e a coluna de vias da trilha nao cabe, entao sem
+ * isto so restava rolar a pagina inteira no dedo, que foi a queixa.
+ *
+ * E um <dialog> nativo aberto com showModal(), e nao uma <div> com classe. O
+ * elemento nativo entrega de graca tres coisas que costumam ser reimplementadas
+ * torto: fechar com Esc, prender o foco dentro do painel enquanto ele esta
+ * aberto, e tornar inerte o resto da pagina para leitor de tela.
+ *
+ * A lista repete os marcos da trilha lateral de proposito: mesma ordem, mesma
+ * numeracao. Quem usa o site no computador e depois no celular encontra o mesmo
+ * mapa nos dois lugares.
+ */
+import { ui, type Locale } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = ui[Astro.props.locale];
+---
+
+<button class="gatilho" type="button" aria-expanded="false" aria-controls="menu-secoes" data-abrir>
+  <span class="gatilho-barras" aria-hidden="true"></span>
+  <span class="oculto-visual">{t.nav.abrirMenu}</span>
+</button>
+
+<dialog class="painel" id="menu-secoes" aria-label={t.nav.abrirMenu}>
+  <div class="painel-topo">
+    <p class="painel-rotulo">{t.nav.secoes}</p>
+    <button class="fechar" type="button" data-fechar>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+      </svg>
+      <span class="oculto-visual">{t.nav.fecharMenu}</span>
+    </button>
+  </div>
+
+  <nav>
+    <ol class="painel-lista">
+      {
+        t.nav.itens.map((item, i) => (
+          <li>
+            <a href={`#${item.id}`}>
+              <span class="painel-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="painel-nome">{item.rotulo}</span>
+              <svg class="painel-seta" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" />
+              </svg>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <a class="painel-idioma" href={t.meta.rotaAlternativa} aria-label={t.meta.trocarIdiomaLabel}>
+    {t.meta.trocarIdioma}
+  </a>
+</dialog>
+
+<style>
+  /*
+   * O <dialog> fechado ja e "display: none" por regra do proprio navegador, e
+   * declarar display aqui anularia isso, deixando o painel visivel na tela o
+   * tempo inteiro. Por isso a folha nunca toca no display do painel: quem
+   * controla e o atributo "open". O que some acima de 48rem e o gatilho, e sem
+   * gatilho o painel nao tem como abrir.
+   */
+  .gatilho {
+    display: none;
+  }
+
+  @media (max-width: 47.999rem) {
+    .gatilho {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      margin-inline-start: auto;
+      padding: 0;
+      background: transparent;
+      border: var(--borda) solid var(--linha);
+      border-radius: var(--raio);
+      color: var(--texto);
+      cursor: pointer;
+      transition: border-color var(--rapido) var(--curva);
+    }
+
+    .gatilho:hover {
+      border-color: var(--linha-forte);
+    }
+
+    /*
+     * Tres tracos desenhados com uma barra e duas sombras, no lugar de tres
+     * elementos. Menos marcacao para a mesma figura.
+     */
+    .gatilho-barras,
+    .gatilho-barras::before,
+    .gatilho-barras::after {
+      display: block;
+      width: 1.125rem;
+      height: 1.5px;
+      background: currentColor;
+      border-radius: 2px;
+    }
+
+    .gatilho-barras {
+      position: relative;
+    }
+
+    .gatilho-barras::before,
+    .gatilho-barras::after {
+      content: '';
+      position: absolute;
+      inset-inline-start: 0;
+    }
+
+    .gatilho-barras::before {
+      inset-block-start: -0.375rem;
+    }
+
+    .gatilho-barras::after {
+      inset-block-start: 0.375rem;
+      /* O traco de baixo e mais curto: o mesmo detalhe assimetrico das trilhas. */
+      width: 0.75rem;
+      background: var(--menta);
+    }
+
+    .painel {
+      margin: 0 0 0 auto;
+      inline-size: min(20rem, 88vw);
+      block-size: 100dvh;
+      max-block-size: 100dvh;
+      padding: var(--s5);
+      border: none;
+      border-inline-start: var(--borda) solid var(--linha);
+      background: var(--poco);
+      color: var(--texto);
+      overflow-y: auto;
+    }
+
+    .painel::backdrop {
+      background: color-mix(in srgb, #000 62%, transparent);
+      backdrop-filter: blur(2px);
+    }
+
+    /* Entrada pela direita. Some sob prefers-reduced-motion, via app.css. */
+    .painel[open] {
+      animation: entrar var(--medio) var(--curva);
+    }
+
+    @keyframes entrar {
+      from {
+        transform: translateX(100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .painel-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s4);
+      padding-block-end: var(--s5);
+      border-block-end: var(--borda) solid var(--linha);
+    }
+
+    .painel-rotulo {
+      font-family: var(--mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--texto-3);
+    }
+
+    .fechar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      margin-inline-end: calc(var(--s2) * -1);
+      padding: 0;
+      background: transparent;
+      border: none;
+      color: var(--texto-2);
+      cursor: pointer;
+      transition: color var(--rapido) var(--curva);
+    }
+
+    .fechar:hover {
+      color: var(--ciano);
+    }
+
+    .painel-lista {
+      display: grid;
+      margin-block-start: var(--s3);
+    }
+
+    .painel-lista a {
+      display: flex;
+      align-items: center;
+      gap: var(--s4);
+      min-height: 3.25rem;
+      padding-block: var(--s2);
+      border-block-end: var(--borda) solid color-mix(in srgb, var(--ciano) 8%, transparent);
+      font-family: var(--mono);
+      font-size: 0.9375rem;
+      color: var(--texto);
+      transition: color var(--rapido) var(--curva);
+    }
+
+    .painel-lista a:hover {
+      color: var(--ciano);
+    }
+
+    .painel-num {
+      font-size: 0.6875rem;
+      color: var(--texto-3);
+    }
+
+    .painel-nome {
+      flex: 1;
+    }
+
+    .painel-seta {
+      color: var(--texto-3);
+    }
+
+    .painel-idioma {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.75rem;
+      margin-block-start: var(--s6);
+      padding-inline: var(--s4);
+      border: var(--borda) solid var(--linha);
+      border-radius: var(--raio);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      color: var(--texto-2);
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Abre e fecha o painel. O <dialog> cuida de Esc, do foco e da inercia do
+   * resto da pagina; o que sobra para o script e o clique no fundo, a
+   * sincronia do aria-expanded e fechar antes de rolar.
+   */
+  const gatilho = document.querySelector<HTMLButtonElement>('[data-abrir]');
+  const painel = document.querySelector<HTMLDialogElement>('#menu-secoes');
+
+  if (gatilho && painel) {
+    const fechar = () => {
+      if (painel.open) painel.close();
+    };
+
+    gatilho.addEventListener('click', () => {
+      painel.showModal();
+      gatilho.setAttribute('aria-expanded', 'true');
+    });
+
+    painel.querySelector('[data-fechar]')?.addEventListener('click', fechar);
+
+    // O <dialog> ocupa a tela inteira para receber o clique no fundo, entao
+    // "clicou fora" e medido contra a caixa real do painel, e nao pelo alvo.
+    painel.addEventListener('click', (evento) => {
+      const caixa = painel.getBoundingClientRect();
+      const fora =
+        evento.clientY < caixa.top ||
+        evento.clientY > caixa.bottom ||
+        evento.clientX < caixa.left ||
+        evento.clientX > caixa.right;
+      if (fora) fechar();
+    });
+
+    /*
+     * Fechar ANTES de rolar. Enquanto o dialogo modal esta aberto o navegador
+     * segura a rolagem da pagina de fundo, entao um link tocado com o painel
+     * aberto nao sairia do lugar. Este listener roda antes do handler global de
+     * ancoras, porque esta mais perto do alvo na arvore.
+     */
+    painel.addEventListener('click', (evento) => {
+      const link = (evento.target as HTMLElement).closest('a[href^="#"]');
+      if (link) fechar();
+    });
+
+    painel.addEventListener('close', () => {
+      gatilho.setAttribute('aria-expanded', 'false');
+      gatilho.focus();
+    });
+  }
+</script>

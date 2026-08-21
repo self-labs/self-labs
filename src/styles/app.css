@@ -372,7 +372,67 @@ ol {
   background: color-mix(in srgb, var(--ciano) 7%, transparent);
 }
 
+/* ------------------------------------------------------ texto corrido - */
+
+/*
+ * Justificacao.
+ *
+ * Vale para paragrafo de leitura, ou seja, texto de varias linhas com medida
+ * suficiente. NAO vale para titulo, rotulo monoespacado, legenda de numero,
+ * etiqueta de stack nem qualquer texto de uma ou duas linhas: nesses casos a
+ * justificacao so abre buracos entre palavras sem ganho nenhum de leitura.
+ *
+ * A hifenizacao vem junto e nao e opcional. Justificar sem hifenizar numa coluna
+ * estreita de celular produz os "rios" de espaco em branco que atravessam o
+ * paragrafo. O navegador so consegue hifenizar porque a pagina declara o idioma
+ * correto em <html lang>, que aqui e pt-BR ou en conforme a rota.
+ *
+ * text-wrap: pretty continua ligado para evitar linha final orfa.
+ */
+.hero-descricao,
+.subtitulo-secao,
+.lab-texto p,
+.pilar-texto,
+.card-pitch,
+.card-nota-texto,
+.limite-texto,
+.externo-texto,
+.fluxo-nota,
+.rodape-linha {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  /*
+   * Segura o caso patologico: uma palavra sozinha numa linha, tipica de coluna
+   * estreita, seria esticada de ponta a ponta. Com a ultima linha alinhada ao
+   * inicio e o limite abaixo, isso nao acontece.
+   */
+  text-align-last: start;
+}
+
+/*
+ * Abaixo de 20rem de medida a justificacao perde para o alinhamento simples,
+ * mesmo com hifenizacao: sobram poucas palavras por linha e o espacamento fica
+ * irregular demais. So aparelhos bem estreitos caem nessa faixa; um celular
+ * comum de 390px tem coluna de leitura de cerca de 21rem e continua justificado.
+ */
+@media (max-width: 20rem) {
+  .hero-descricao,
+  .subtitulo-secao,
+  .lab-texto p,
+  .pilar-texto,
+  .card-pitch,
+  .card-nota-texto,
+  .limite-texto,
+  .externo-texto,
+  .fluxo-nota,
+  .rodape-linha {
+    text-align: start;
+  }
+}
+
 /* ------------------------------------------------------------ movimento - */
+
 
 @media (prefers-reduced-motion: reduce) {
   html {

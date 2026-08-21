@@ -32,12 +32,14 @@ export const ui = {
       idioma: 'pt-BR',
       trocarIdioma: 'English',
       trocarIdiomaLabel: 'Ver esta página em inglês',
+      rotaAlternativa: '/en',
     },
 
     nav: {
       pular: 'Ir direto ao conteúdo',
       abrirMenu: 'Abrir menu de navegação',
       fecharMenu: 'Fechar menu de navegação',
+      secoes: 'Seções',
       itens: [
         { id: 'lab', rotulo: 'O lab' },
         { id: 'metodo', rotulo: 'Método' },
@@ -277,12 +279,14 @@ export const ui = {
       idioma: 'en',
       trocarIdioma: 'Português',
       trocarIdiomaLabel: 'View this page in Portuguese',
+      rotaAlternativa: '/',
     },
 
     nav: {
       pular: 'Skip to content',
       abrirMenu: 'Open navigation menu',
       fecharMenu: 'Close navigation menu',
+      secoes: 'Sections',
       itens: [
         { id: 'lab', rotulo: 'The lab' },
         { id: 'metodo', rotulo: 'Method' },

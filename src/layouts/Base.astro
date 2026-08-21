@@ -20,6 +20,7 @@ import '@fontsource-variable/jetbrains-mono';
 import '../styles/app.css';
 
 import Trilha from '../components/Trilha.astro';
+import MenuMobile from '../components/MenuMobile.astro';
 import { ui, rota, type Locale } from '../i18n/ui';
 import { EMAIL } from '../i18n/contato';
 import lockup from '../assets/brand/lockup.svg?raw';
@@ -131,6 +132,8 @@ const servicos = [
         <a class="idioma" href={rota(outro)} hreflang={outro === 'pt' ? 'pt-BR' : 'en'} aria-label={t.meta.trocarIdiomaLabel}>
           {t.meta.trocarIdioma}
         </a>
+
+        <MenuMobile locale={locale} />
       </div>
     </header>
 
@@ -244,10 +247,14 @@ const servicos = [
         border-block-end-color: var(--ciano);
       }
 
+      /*
+       * Some no celular porque o mesmo seletor ja vive dentro do painel do menu.
+       * Dois caminhos para a mesma acao, um ao lado do outro, so ocupam o espaco
+       * do cabecalho estreito. Acima de 48rem ele volta, e o menu e que sai.
+       */
       .idioma {
-        margin-inline-start: auto;
+        display: none;
         flex: none;
-        display: inline-flex;
         align-items: center;
         min-height: 2.75rem;
         padding-inline: var(--s4);
@@ -262,6 +269,7 @@ const servicos = [
 
       @media (min-width: 48rem) {
         .idioma {
+          display: inline-flex;
           margin-inline-start: 0;
         }
       }
