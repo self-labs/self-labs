@@ -451,11 +451,19 @@ ol {
 /* ------------------------------------------------------------ movimento - */
 
 
+/*
+ * O que para sob "reduzir movimento" e o movimento DECORATIVO: a cascata de
+ * energizacao do isotipo, o pulso do ECG, a entrada do menu, as transicoes de
+ * estado. Esse movimento nao carrega informacao, so atmosfera.
+ *
+ * A rolagem de navegacao NAO entra aqui, e isso e uma decisao medida, nao um
+ * esquecimento. Num iPhone com iOS 26.6.1 e a preferencia ligada, o Safari anima
+ * a rolagem de ancora assim mesmo, porque ela orienta o leitor sobre para onde a
+ * pagina foi, em vez de enfeitar. Forcar "scroll-behavior: auto" aqui era ser
+ * mais restritivo que a propria plataforma, e entregava salto seco justamente a
+ * quem tinha a preferencia ligada. Quem decide isso e o navegador.
+ */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   *,
   *::before,
   *::after {

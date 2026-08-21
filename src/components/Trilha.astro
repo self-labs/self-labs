@@ -271,7 +271,6 @@ const { secoes } = Astro.props;
    */
   (() => {
     const html = document.documentElement;
-    const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
     const suportaSuave = 'scrollBehavior' in html.style;
 
     /*
@@ -292,7 +291,23 @@ const { secoes } = Astro.props;
         ),
       );
 
-      if (semMovimento.matches || !suportaSuave) {
+      /*
+       * Nao ha checagem de prefers-reduced-motion aqui, e isso e deliberado.
+       *
+       * Quem decide o que fazer com essa preferencia diante de "behavior:
+       * smooth" e o navegador, nao esta folha. Medido num iPhone com iOS 26.6.1
+       * e "Reduzir movimento" LIGADO: o Safari anima a rolagem assim mesmo, com
+       * oito posicoes intermediarias, porque nao trata rolagem de navegacao como
+       * movimento decorativo a suprimir. A versao anterior deste arquivo cortava
+       * a animacao por conta propria nesse caso, ficando mais restritiva que a
+       * plataforma e entregando o salto seco relatado justamente a quem tinha a
+       * preferencia ligada.
+       *
+       * A preferencia continua sendo respeitada onde ela de fato se aplica: a
+       * cascata do isotipo, o pulso do ECG e a entrada do menu param, e isso vive
+       * em app.css. Movimento decorativo para; movimento de orientacao fica.
+       */
+      if (!suportaSuave) {
         window.scrollTo(0, destino);
         return;
       }
