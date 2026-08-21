@@ -54,35 +54,38 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Conferir se o site respondeu
-        # Publicar sem erro nao prova que o apex esta servindo. Esta checagem
-        # separa "o deploy rodou" de "o site esta no ar".
+        # Publicar sem erro nao prova que o apex esta servindo.
         #
-        # O User-Agent identifica o CI porque a zona roda com Bot Fight Mode
-        # ligado, e sem uma regra de skip para este agente a Cloudflare devolve
-        # 403 ao runner antes de a requisicao chegar no Worker. Esse 403 ja
-        # derrubou dois deploys que estavam perfeitos, entao ele e tratado como
-        # caso proprio, com instrucao de conserto, e nunca confundido com queda.
+        # Se a resposta nao for 200, o passo imprime os cabecalhos de resposta
+        # antes de falhar. E ai que mora a explicacao: cf-mitigated diz qual
+        # camada da Cloudflare barrou, cf-ray identifica a requisicao no painel,
+        # e o corpo costuma nomear o produto. Sem isso sobra adivinhacao, que ja
+        # custou duas hipoteses erradas neste projeto.
         run: |
           sleep 10
           agente='selflabs-ci/1.0'
-          codigo=$(curl -sS -o /dev/null -w '%{http_code}' -A "$agente" --max-time 20 https://selflabs.org/)
+          url='https://selflabs.org/'
+
+          codigo=$(curl -sS -o /tmp/corpo.html -D /tmp/cabecalhos.txt                         -w '%{http_code}' -A "$agente" --max-time 20 "$url")
           echo "selflabs.org respondeu $codigo"
 
-          case "$codigo" in
-            200)
-              echo "Site no ar."
-              ;;
-            403)
-              echo "::error::A Cloudflare bloqueou o proprio CI (403), entao esta checagem nao conseguiu ver o site."
-              echo "::error::Causa: Bot Fight Mode ligado na zona selflabs.org."
-              echo "::error::Conserto: em Security, WAF, Custom rules, criar uma regra com acao Skip para"
-              echo "::error::(http.user_agent eq \"selflabs-ci/1.0\" and http.host in {\"selflabs.org\" \"www.selflabs.org\"})"
-              echo "::error::pulando as fases http_ratelimit, http_request_firewall_managed e http_request_sbfm,"
-              echo "::error::no mesmo formato da regra Bypass Jarvis Alexa que ja existe na zona."
-              exit 1
-              ;;
-            *)
-              echo "::error::selflabs.org respondeu $codigo. O deploy subiu, mas a entrega falhou."
-              exit 1
-              ;;
-          esac
+          if [ "$codigo" = "200" ]; then
+            echo "Site no ar."
+            exit 0
+          fi
+
+          echo "----- cabecalhos da resposta -----"
+          cat /tmp/cabecalhos.txt
+          echo "----- inicio do corpo -----"
+          head -c 600 /tmp/corpo.html
+          echo
+          echo "----- a mesma URL sem User-Agent proprio -----"
+          padrao=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url")
+          echo "sem UA proprio: $padrao"
+          echo "----- com User-Agent de navegador -----"
+          navegador=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20             -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' "$url")
+          echo "com UA de navegador: $navegador"
+
+          echo "::error::selflabs.org respondeu $codigo para o runner. Veja os cabecalhos acima:"
+          echo "::error::cf-mitigated nomeia a camada que barrou; cf-ray localiza a requisicao no painel da Cloudflare."
+          exit 1
