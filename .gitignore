@@ -37,3 +37,9 @@ desktop.ini
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Anexos e artefatos soltos na raiz
+/*.pdf
+/*.docx
+/*.xlsx
+/*.zip

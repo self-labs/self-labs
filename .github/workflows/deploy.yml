@@ -23,6 +23,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Dois commits: o passo de versao compara este com o anterior.
+          fetch-depth: 2
 
       - uses: actions/setup-node@v5
         with:
@@ -31,6 +34,40 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci
+
+      - name: Conferir se a versao subiu
+        # A versao CalVer aparece no rodape do site. Cinco deploys sairam com o
+        # mesmo 2026.8.1 porque nada obrigava a subir a revisao, e o rodape
+        # passou a mentir sobre o que estava no ar. Agora o CI cobra.
+        run: |
+          atual=$(node -p "require('./package.json').version")
+
+          if ! git rev-parse HEAD~1 > /dev/null 2>&1; then
+            echo "Sem commit anterior para comparar. Versao atual: $atual"
+            exit 0
+          fi
+
+          anterior=$(git show HEAD~1:package.json 2>/dev/null | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")
+
+          if [ -z "$anterior" ]; then
+            echo "Nao foi possivel ler a versao anterior. Versao atual: $atual"
+            exit 0
+          fi
+
+          echo "anterior: $anterior"
+          echo "atual:    $atual"
+
+          # Mudanca so em workflow ou documentacao nao exige revisao nova.
+          if git diff --name-only HEAD~1 HEAD | grep -qvE '^(\.github/|docs/|README\.md|AGENTS\.md|CLAUDE\.md)'; then
+            if [ "$atual" = "$anterior" ]; then
+              echo "::error::O codigo mudou e a versao continua $atual."
+              echo "::error::Suba a revisao no package.json: o rodape do site mostra esse numero."
+              exit 1
+            fi
+            echo "Versao subiu junto com o codigo."
+          else
+            echo "Mudanca apenas em workflow ou documentacao, revisao nao e exigida."
+          fi
 
       - name: Verificar tipos
         run: npm run check

@@ -164,6 +164,23 @@ svg {
   max-width: 100%;
 }
 
+/*
+ * O atributo "hidden" precisa vencer qualquer display declarado aqui.
+ *
+ * O navegador aplica display: none a [hidden] pela folha dele, e folha de autor
+ * sempre ganha da folha do navegador, independente de especificidade. Entao um
+ * simples ".card { display: flex }" anula o hidden em silencio: o elemento fica
+ * marcado como escondido, sai da arvore de acessibilidade, e continua ocupando
+ * espaco na tela. Foi exatamente o que aconteceu com o filtro do portfolio, que
+ * marcava quinze cards e nao escondia nenhum.
+ *
+ * O !important aqui e proposital e um dos poucos do projeto: "hidden" significa
+ * escondido, e nao "escondido a menos que alguem declare outro display depois".
+ */
+[hidden] {
+  display: none !important;
+}
+
 a {
   color: inherit;
   text-decoration: none;

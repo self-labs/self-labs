@@ -192,3 +192,72 @@ describe('estatisticas derivadas', () => {
     assert.ok(stats.prsExternos >= 0);
   });
 });
+
+describe('regras de folha de estilo que ja quebraram', () => {
+  /*
+   * Os comentarios sao removidos antes de qualquer checagem. Sem isso o teste le
+   * a propria explicacao de um bug como se fosse a declaracao que o causa: o
+   * comentario do body cita "overflow-x: hidden" exatamente para dizer que nao
+   * se deve usar, e o teste acusava a frase que existe para preveni-lo.
+   */
+  const css = fs
+    .readFileSync(path.join(ROOT, 'src/styles/app.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /*
+   * O filtro do portfolio marcava quinze cards com o atributo hidden e nao
+   * escondia nenhum, porque ".card { display: flex }" vence o display do
+   * navegador para [hidden]: folha de autor sempre ganha da folha do navegador.
+   * A regra global com !important e o conserto, e este teste impede que alguem
+   * a remova por parecer supérflua.
+   */
+  test('o atributo hidden vence qualquer display declarado', () => {
+    const regra = css.match(/\[hidden\]\s*\{[^}]*\}/);
+    assert.ok(regra, 'falta a regra global para [hidden] em app.css');
+    assert.match(regra[0], /display:\s*none\s*!important/, 'a regra [hidden] precisa de display none com !important');
+  });
+
+  /*
+   * "overflow-x: hidden" no body transforma o body em contexto de rolagem, e
+   * isso desliga o scroll suave declarado no html. Ja aconteceu uma vez.
+   */
+  test('o body usa overflow-x clip, nunca hidden', () => {
+    const corpo = css.match(/\nbody\s*\{[^}]*\}/);
+    assert.ok(corpo, 'bloco do body nao encontrado');
+    assert.doesNotMatch(corpo[0], /overflow-x:\s*hidden/, 'overflow-x hidden no body quebra o scroll suave');
+  });
+
+  /*
+   * A rolagem de ancora e movimento de orientacao, nao decoracao. Forcar
+   * scroll-behavior auto sob reduced motion entregava salto seco justamente a
+   * quem tinha a preferencia ligada, e o proprio Safari anima nesse caso.
+   */
+  test('reduced motion nao forca scroll-behavior auto', () => {
+    const bloco = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/);
+    assert.ok(bloco, 'bloco de prefers-reduced-motion nao encontrado');
+    assert.doesNotMatch(bloco[0], /scroll-behavior:\s*auto/, 'deixe o navegador decidir o scroll sob reduced motion');
+  });
+});
+
+describe('versao CalVer', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+
+  test('a versao segue ANO.MES.REVISAO', () => {
+    assert.match(pkg.version, /^\d{4}\.\d{1,2}\.\d+$/, `versao fora do padrao CalVer: ${pkg.version}`);
+  });
+
+  test('o mes nao tem zero a esquerda', () => {
+    const mes = pkg.version.split('.')[1];
+    assert.ok(!(mes.length > 1 && mes.startsWith('0')), `mes com zero a esquerda: ${pkg.version}`);
+  });
+
+  test('o mes esta entre 1 e 12', () => {
+    const mes = Number(pkg.version.split('.')[1]);
+    assert.ok(mes >= 1 && mes <= 12, `mes invalido: ${pkg.version}`);
+  });
+
+  test('a revisao e um inteiro positivo', () => {
+    const rev = Number(pkg.version.split('.')[2]);
+    assert.ok(Number.isInteger(rev) && rev >= 1, `revisao invalida: ${pkg.version}`);
+  });
+});
