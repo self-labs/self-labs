@@ -53,39 +53,51 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Conferir se o site respondeu
-        # Publicar sem erro nao prova que o apex esta servindo.
+      - name: Conferir se a versao publicada esta ativa
+        # Por que nao um curl na URL publica: a zona roda com Bot Fight Mode do
+        # plano gratuito, que responde ao runner com um desafio interativo
+        # (cf-mitigated: challenge, pagina "Just a moment"). Medido: 403 tanto
+        # com User-Agent proprio quanto com User-Agent de navegador, ou seja, o
+        # gatilho e o IP de datacenter, nao o agente. E o Bot Fight Mode do plano
+        # gratuito nao e pulavel por regra de WAF: a fase http_request_sbfm
+        # pertence ao Super Bot Fight Mode, dos planos pagos.
         #
-        # Se a resposta nao for 200, o passo imprime os cabecalhos de resposta
-        # antes de falhar. E ai que mora a explicacao: cf-mitigated diz qual
-        # camada da Cloudflare barrou, cf-ray identifica a requisicao no painel,
-        # e o corpo costuma nomear o produto. Sem isso sobra adivinhacao, que ja
-        # custou duas hipoteses erradas neste projeto.
+        # Entao a verificacao passa a perguntar para a propria Cloudflare qual
+        # versao esta servindo, e compara com a que acabou de subir. Isso pega o
+        # caso real que o wrangler sozinho nao pega: deploy aceito, mas a versao
+        # antiga continuar ativa.
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          sleep 10
-          agente='selflabs-ci/1.0'
-          url='https://selflabs.org/'
+          sleep 5
+          api="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts/selflabs-site/deployments"
+          resposta=$(curl -sS -H "Authorization: Bearer $CF_API_TOKEN" --max-time 20 "$api")
 
-          codigo=$(curl -sS -o /tmp/corpo.html -D /tmp/cabecalhos.txt                         -w '%{http_code}' -A "$agente" --max-time 20 "$url")
-          echo "selflabs.org respondeu $codigo"
-
-          if [ "$codigo" = "200" ]; then
-            echo "Site no ar."
-            exit 0
+          if ! echo "$resposta" | jq -e '.success == true' > /dev/null 2>&1; then
+            echo "::error::A API da Cloudflare nao respondeu como esperado:"
+            echo "$resposta" | head -c 500
+            exit 1
           fi
 
-          echo "----- cabecalhos da resposta -----"
-          cat /tmp/cabecalhos.txt
-          echo "----- inicio do corpo -----"
-          head -c 600 /tmp/corpo.html
-          echo
-          echo "----- a mesma URL sem User-Agent proprio -----"
-          padrao=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url")
-          echo "sem UA proprio: $padrao"
-          echo "----- com User-Agent de navegador -----"
-          navegador=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20             -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36' "$url")
-          echo "com UA de navegador: $navegador"
+          # O deployment ativo e o primeiro da lista, e traz a data de criacao.
+          criado=$(echo "$resposta" | jq -r '.result.deployments[0].created_on // empty')
+          origem=$(echo "$resposta" | jq -r '.result.deployments[0].source // "desconhecida"')
 
-          echo "::error::selflabs.org respondeu $codigo para o runner. Veja os cabecalhos acima:"
-          echo "::error::cf-mitigated nomeia a camada que barrou; cf-ray localiza a requisicao no painel da Cloudflare."
-          exit 1
+          if [ -z "$criado" ]; then
+            echo "::error::Nenhum deployment ativo encontrado para selflabs-site."
+            exit 1
+          fi
+
+          idade=$(( $(date -u +%s) - $(date -u -d "$criado" +%s) ))
+          echo "Deployment ativo criado em $criado (origem: $origem, ha ${idade}s)"
+
+          # Um deployment com mais de dez minutos significa que este push nao
+          # substituiu nada, ou seja, a versao nova nao entrou em producao.
+          if [ "$idade" -gt 600 ]; then
+            echo "::error::O deployment ativo tem ${idade}s de idade, mais que os 600s aceitos."
+            echo "::error::O wrangler reportou sucesso, mas a versao em producao nao e a deste push."
+            exit 1
+          fi
+
+          echo "Versao deste push confirmada em producao."
