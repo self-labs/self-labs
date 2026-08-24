@@ -253,14 +253,15 @@ export const ui = {
       codigo: "EXT",
       rotulo: "Validação externa",
       titulo: "Código que passou pela revisão de outra pessoa",
-      subtitulo:
-        "Treze pull requests aceitos em oito repositórios de sete donos diferentes, mais acesso de escrita a um projeto de terceiro. Os quatro abaixo são os que mais dizem alguma coisa.",
+      /** O numero vem de stats.json, nunca digitado: ver scripts/fetch-stats.mjs. */
+      subtitulo: (prs: number) =>
+        `${prs} pull requests aceitos em oito repositórios de sete donos diferentes, mais acesso de escrita a um projeto de terceiro. Os quatro abaixo são os que mais dizem alguma coisa.`,
       itens: [
         {
           onde: "Blockstream / Jade",
           texto:
-            "Pull request 260 aceito no repositório oficial do firmware da hardware wallet Jade, em dezembro de 2025. É o firmware que roda nas placas do Jade DIY.",
-          link: "https://github.com/Blockstream/Jade/pull/260",
+            "Cinco pull requests aceitos no repositório oficial do firmware da hardware wallet Jade, a começar pelo 260 em dezembro de 2025. É o firmware que roda nas placas do Jade DIY. Os outros quatro aparecem como fechados porque a Blockstream aplica a mudança na branch interna em vez de apertar o botão de merge.",
+          link: "https://github.com/Blockstream/Jade/pulls?q=is%3Apr+author%3ACaTeIM",
         },
         {
           onde: "Origo, de Oderico",
@@ -278,7 +279,7 @@ export const ui = {
           onde: "FrankMD, Home Assistant e outros",
           texto:
             "Mais três pull requests aceitos no FrankMD e correções em dois componentes de Home Assistant mantidos por terceiros, sempre com o caso de teste que reproduz o problema.",
-          link: "https://github.com/pulls?q=is%3Apr+author%3ACaTeIM+is%3Amerged",
+          link: "https://github.com/search?q=is%3Apr+author%3ACaTeIM+is%3Amerged&type=pullrequests",
         },
       ],
     },
@@ -541,14 +542,15 @@ export const ui = {
       codigo: "EXT",
       rotulo: "External validation",
       titulo: "Code that went through someone else review",
-      subtitulo:
-        "Thirteen pull requests merged into eight repositories owned by seven different people, plus write access to a project that is not mine. These four say the most.",
+      /** The number comes from stats.json, never typed: see scripts/fetch-stats.mjs. */
+      subtitulo: (prs: number) =>
+        `${prs} pull requests accepted in eight repositories owned by seven different people, plus write access to a project that is not mine. These four say the most.`,
       itens: [
         {
           onde: "Blockstream / Jade",
           texto:
-            "Pull request 260 merged into the official repository of the Jade hardware wallet firmware, in December 2025. That is the firmware running on the Jade DIY boards.",
-          link: "https://github.com/Blockstream/Jade/pull/260",
+            "Five pull requests accepted into the official repository of the Jade hardware wallet firmware, starting with 260 in December 2025. That is the firmware running on the Jade DIY boards. The other four show as closed because Blockstream lands the change on their internal branch instead of pressing the merge button.",
+          link: "https://github.com/Blockstream/Jade/pulls?q=is%3Apr+author%3ACaTeIM",
         },
         {
           onde: "Origo, by Oderico",
@@ -566,7 +568,7 @@ export const ui = {
           onde: "FrankMD, Home Assistant and others",
           texto:
             "Three more merged into FrankMD, plus fixes to two third party Home Assistant components, always shipped with the test case that reproduces the problem.",
-          link: "https://github.com/pulls?q=is%3Apr+author%3ACaTeIM+is%3Amerged",
+          link: "https://github.com/search?q=is%3Apr+author%3ACaTeIM+is%3Amerged&type=pullrequests",
         },
       ],
     },

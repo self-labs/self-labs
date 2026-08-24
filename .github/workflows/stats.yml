@@ -63,14 +63,16 @@ jobs:
 
       - name: Commitar se mudou
         run: |
-          if git diff --quiet -- src/data/stats.json; then
+          # Os dois arquivos: src/data alimenta o build, public/ e servido em
+          # selflabs.org/stats.json e e de la que os badges do GitHub leem.
+          if git diff --quiet -- src/data/stats.json public/stats.json; then
             echo "Nenhuma mudança nos números. Nada a fazer."
             exit 0
           fi
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/data/stats.json
+          git add src/data/stats.json public/stats.json
           git commit -m "chore(stats): atualiza números da barra de prova
 
           Gerado por scripts/fetch-stats.mjs a partir da API do GitHub."

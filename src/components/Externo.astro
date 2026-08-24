@@ -6,6 +6,7 @@
  * prova que o codigo sobreviveu a um revisor que nao tinha motivo para ser gentil.
  */
 import { ui, type Locale } from '../i18n/ui';
+import stats from '../data/stats.json';
 
 interface Props {
   locale: Locale;
@@ -18,7 +19,7 @@ const t = ui[Astro.props.locale].externo;
   <div class="casca">
     <p class="rotulo"><b>{t.codigo}</b> {t.rotulo}</p>
     <h2 class="titulo-secao">{t.titulo}</h2>
-    <p class="subtitulo-secao">{t.subtitulo}</p>
+    <p class="subtitulo-secao">{t.subtitulo(stats.prsExternos)}</p>
 
     <ul class="externos">
       {

@@ -29,6 +29,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DESTINO = path.join(ROOT, "src/data/stats.json");
+/** Copia servida em selflabs.org/stats.json: e dela que os badges do GitHub leem. */
+const DESTINO_PUBLICO = path.join(ROOT, "public/stats.json");
 
 const USUARIO = "CaTeIM";
 const ORGS = ["self-labs"];
@@ -45,6 +47,25 @@ const PROPRIAS = new Set([
   ...ORGS.map((o) => o.toLowerCase()),
   "atlasdao",
 ]);
+
+/**
+ * Pull requests aceitos que a API nunca vai marcar como merged.
+ *
+ * O Blockstream nao aperta o botao de merge: pega a mudanca, aplica na branch
+ * interna deles e fecha o PR original. Para a API isso e "closed", identico a um
+ * PR recusado, entao a busca por is:merged acha so o 260 e os outros quatro
+ * somem da conta sem avisar.
+ *
+ * Cada entrada e conferida na API antes de somar: se um dia o PR aparecer como
+ * merged de verdade, a busca ja o encontra e esta lista para de conta-lo, entao
+ * contagem dupla nao acontece.
+ */
+const ACEITOS_SEM_MERGE = [
+  "Blockstream/Jade#268",
+  "Blockstream/Jade#270",
+  "Blockstream/Jade#271",
+  "Blockstream/Jade#307",
+];
 
 const API = "https://api.github.com";
 const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
@@ -161,13 +182,48 @@ async function listarRepos() {
   return todos;
 }
 
-/** Pull requests do autor com merge, em repositorios que nao sao dele. */
+/**
+ * Confere quais dos aceitos sem merge continuam fechados sem merge.
+ *
+ * PR que sumiu devolve zero porque nao existe mais. PR que virou merged devolve
+ * zero porque a busca por is:merged ja o contou.
+ */
+async function contarAceitosSemMerge() {
+  let extras = 0;
+  for (const referencia of ACEITOS_SEM_MERGE) {
+    const [repositorio, numero] = referencia.split("#");
+    try {
+      const pr = await api(`/repos/${repositorio}/pulls/${numero}`);
+      if (pr.state === "closed" && !pr.merged) extras += 1;
+    } catch (erro) {
+      console.warn(`  aviso: ${referencia} indisponivel (${erro.message})`);
+    }
+  }
+  return extras;
+}
+
+/** Pull requests do autor aceitos em repositorios que nao sao dele. */
 async function contarPullRequestsExternos() {
   const excluir = [...PROPRIAS].map((c) => `-user:${c}`).join("+");
   const busca = await api(
     `/search/issues?q=type:pr+author:${USUARIO}+is:merged+${excluir}&per_page=1`,
   );
-  return Number.parseInt(busca.total_count ?? 0, 10);
+  const comMerge = Number.parseInt(busca.total_count ?? 0, 10);
+  const semMerge = await contarAceitosSemMerge();
+  if (semMerge > 0) {
+    console.log(`  ${semMerge} aceitos que a API marca como closed, somados`);
+  }
+  return comMerge + semMerge;
+}
+
+/** Grava o mesmo JSON em src/data (build) e em public (badges externos). */
+function gravar(dados) {
+  const conteudo = `${JSON.stringify(dados, null, 2)}
+`;
+  for (const destino of [DESTINO, DESTINO_PUBLICO]) {
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.writeFileSync(destino, conteudo, "utf8");
+  }
 }
 
 function lerAtual() {
@@ -255,8 +311,7 @@ async function main() {
       return;
     }
 
-    fs.mkdirSync(path.dirname(DESTINO), { recursive: true });
-    fs.writeFileSync(DESTINO, `${JSON.stringify(novo, null, 2)}\n`, "utf8");
+    gravar(novo);
 
     console.log(
       `\n${commits} commits em ${comCommits} repositórios (${privados} privados), ${prsExternos} PRs aceitos fora de casa`,
@@ -277,8 +332,7 @@ async function main() {
         inicioOperacao: "2025-06-01",
         atualizadoEm: "2026-08-20",
       };
-      fs.mkdirSync(path.dirname(DESTINO), { recursive: true });
-      fs.writeFileSync(DESTINO, `${JSON.stringify(piso, null, 2)}\n`, "utf8");
+      gravar(piso);
       console.warn(
         "Sem arquivo anterior: gravado o último valor conhecido, de 20/08/2026.",
       );
