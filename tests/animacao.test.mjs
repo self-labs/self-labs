@@ -332,13 +332,27 @@ describe('ECG, cadencia', () => {
      */
     assert.match(
       hero,
-      /animation:\s*avanco-\d+\s+calc\(var\(--ciclos\)\s*\*\s*var\(--batida\)\)/,
-      'a duracao do avanco precisa ser calc(var(--ciclos) * var(--batida))',
+      /animation:\s*avanco-\d+\s+calc\(var\(--ciclos[^)]*\)\s*\*\s*var\(--batida[^)]*\)\)/,
+      'a duracao do avanco precisa ser ciclos vezes batida',
     );
     assert.match(
       hero,
-      /\.ecg-cabecote\s*\{\s*animation:\s*onda\s+var\(--batida\)/,
+      /\.ecg-cabecote\s*\{[\s\S]{0,400}?animation:\s*onda\s+var\(--batida[^)]*\)/,
       'a onda precisa durar exatamente uma batida',
+    );
+
+    /*
+     * Toda var dentro da shorthand precisa de valor de reserva. Sem ele, um var
+     * que nao chegue ao elemento invalida a declaracao INTEIRA, e o efeito nao e
+     * uma duracao errada: e a animacao deixar de existir, sem aviso nenhum.
+     */
+    const semReserva = [...hero.matchAll(/animation:\s*(?:avanco-\d+|onda)[^;]*/g)].flatMap((m) =>
+      [...m[0].matchAll(/var\(--(?:ciclos|batida)\s*\)/g)].map((v) => v[0]),
+    );
+    assert.deepEqual(
+      semReserva,
+      [],
+      `var sem valor de reserva na animacao: ${semReserva.join(', ')}`,
     );
   });
 
@@ -377,20 +391,60 @@ describe('ECG, cadencia', () => {
     assert.match(quadros[0], /opacity/, 'a respiracao precisa variar a opacidade');
   });
 
-  test('movimento reduzido desacelera pela batida, nao animacao por animacao', () => {
+  test('movimento reduzido para o ECG em vez de tentar desacelerar', () => {
     /*
-     * Antes cada animacao carregava a propria duracao aqui dentro, e bastava
-     * esquecer uma para os eixos saírem de fase justamente para quem tem a
-     * preferencia ligada. Mexer so na --batida desacelera tudo na mesma
-     * proporcao, por construcao.
+     * Desacelerar nao funciona e ainda engana quem le o codigo. Medido no Chrome
+     * sobre Windows com "Efeitos de animacao" desligado: o navegador forca
+     * animation-duration para 1e-06s em TODA animacao CSS, entao qualquer
+     * duracao declarada aqui e descartada antes de valer. O que sobrava na tela
+     * era um ECG travado no primeiro quadro, com o cabecote em x=0, dentro da
+     * borda que a mascara apaga, e isso le como defeito, nao como decisao.
      */
     const bloco = hero.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n {2}\}/);
     assert.ok(bloco, 'bloco de movimento reduzido nao encontrado no Hero');
-    assert.match(bloco[0], /--batida:\s*[\d.]+s/, 'o bloco precisa redefinir a --batida');
+
     assert.doesNotMatch(
       bloco[0],
-      /\.ecg-(avanco|cabecote|rastro)\s*\{[^}]*animation-duration/,
-      'nao declare duracao por animacao aqui: mude a --batida e as outras acompanham',
+      /--batida:/,
+      'redefinir a --batida aqui nao tem efeito: o navegador ja zera a duracao',
+    );
+
+    for (const alvo of ['ecg-avanco', 'ecg-cabecote']) {
+      assert.match(
+        bloco[0],
+        new RegExp(`\\.${alvo}[\\s\\S]{0,240}?animation:\\s*none`),
+        `.${alvo} precisa parar explicitamente sob movimento reduzido`,
+      );
+    }
+  });
+
+  test('parado, o cabecote descansa sobre a linha de base e longe das bordas', () => {
+    /*
+     * A onda so volta a linha de base a cada ciclo inteiro. Parar num
+     * deslocamento qualquer deixaria o ponto flutuando ao lado do traco, e parar
+     * em zero o esconderia dentro do apagamento da borda esquerda.
+     */
+    const bloco = hero.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n {2}\}/);
+    const parada = bloco[0].match(
+      /translate:\s*calc\(var\(--fim\)\s*\/\s*var\(--ciclos\)(?:\s*\*\s*(\d+))?\)/,
+    );
+    assert.ok(parada, 'a parada precisa ser um numero inteiro de ciclos a partir da partida');
+
+    // Sem multiplicador escrito, a parada e de um ciclo.
+    const ciclosAdiante = parada[1] ? Number(parada[1]) : 1;
+    assert.ok(ciclosAdiante >= 1, 'parar em zero esconde o ponto na borda que apaga');
+
+    const menor = Math.min(...faixasDeciclos().map((f) => f.ciclos));
+    assert.ok(
+      ciclosAdiante < menor,
+      `para em ${ciclosAdiante} ciclos, mas a faixa mais estreita percorre so ${menor}`,
+    );
+
+    // E o Y precisa ser a linha de base, que e onde a onda esta em ciclo inteiro.
+    assert.match(
+      bloco[0],
+      /\.ecg-cabecote\s*\{[\s\S]{0,120}?translate:\s*0\s+20px/,
+      'o cabecote parado precisa ficar em y=20, a linha de base do viewBox',
     );
   });
 });

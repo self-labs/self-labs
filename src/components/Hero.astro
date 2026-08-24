@@ -519,7 +519,12 @@ ${QUADROS_AVANCO}`}
    */
   .ecg-avanco,
   .ecg-rastro {
-    animation: avanco-2 calc(var(--ciclos) * var(--batida)) linear infinite;
+    /*
+     * As duas variaveis levam valor de reserva. Sem ele, uma var que nao chegue
+     * ao elemento invalida a declaracao INTEIRA, e o efeito nao e uma duracao
+     * errada: e a animacao deixar de existir, sem nenhum aviso.
+     */
+    animation: avanco-2 calc(var(--ciclos, 2) * var(--batida, 1.25s)) linear infinite;
   }
 
   /*
@@ -583,7 +588,7 @@ ${QUADROS_AVANCO}`}
    * da onda em qualquer tela, sem nenhum ajuste de fase.
    */
   .ecg-cabecote {
-    animation: onda var(--batida) linear infinite;
+    animation: onda var(--batida, 1.25s) linear infinite;
   }
 
   .ecg-ponto {
@@ -652,8 +657,36 @@ ${QUADROS_AVANCO}`}
       animation-iteration-count: infinite !important;
     }
 
-    .ecg {
-      --batida: 2.5s;
+    /*
+     * Movimento reduzido nao ganha uma versao lenta, ganha uma versao parada.
+     *
+     * Desacelerar era inutil e enganoso. Medido no Chrome do dono, com o Windows
+     * de "Efeitos de animacao" desligado: o navegador forca animation-duration
+     * para 1e-06s em toda animacao CSS, entao a --batida de 2.5s daqui nunca
+     * chegava a valer nada. O resultado na tela era um ECG travado no primeiro
+     * quadro, com o cabecote parado em x=0, bem na borda que a mascara apaga,
+     * o que le como defeito e nao como decisao.
+     *
+     * Parando de proposito, o traco fica inteiro e o cabecote descansa sobre a
+     * linha de base a dois ciclos da partida, longe das duas bordas. Vira um
+     * monitor em pausa, que e uma imagem honesta.
+     *
+     * Um ciclo, e nao a metade do percurso, por duas razoes. A onda so volta a
+     * linha de base a cada 120 unidades, entao parar num deslocamento qualquer
+     * deixaria o ponto flutuando ao lado do traco em vez de em cima dele. E um
+     * ciclo cabe em TODA largura: a faixa mais estreita percorre dois, entao
+     * parar em dois a colocaria exatamente no fim do percurso, dentro da borda
+     * que a mascara apaga, que e o defeito que este bloco existe para evitar.
+     */
+    .ecg-avanco,
+    .ecg-rastro {
+      animation: none;
+      translate: calc(var(--fim) / var(--ciclos));
+    }
+
+    .ecg-cabecote {
+      animation: none;
+      translate: 0 20px;
     }
 
     .ecg-halo {
