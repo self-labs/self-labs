@@ -216,6 +216,18 @@ current design removes the shape rather than patching the symptom.
 - **The fade is symmetric.** It was 2.5rem in and 3.5rem out, and the difference
   showed: the dot was born fast and died slow, which reached the owner as "starts
   well, finishes badly".
+- **Reduced motion stops the sweep, it does not slow it down.** Chromium forces
+  `animation-duration` to `1e-06s` on every CSS animation while the preference is
+  on, so any duration declared inside that media query is discarded before it can
+  matter. Measured on the owner's Chrome and reproduced with the preference
+  emulated. The band used to freeze on frame one with the head at x=0, inside the
+  edge the mask erases, which reads as broken. It now rests one whole cycle in:
+  on the baseline, because the wave only returns to it every 120 units, and at
+  21% of the band, clear of both fades. One cycle and not two, because the
+  narrowest band only travels two.
+- **Every var in the animation shorthand carries a fallback.** A var that fails to
+  reach the element invalidates the entire declaration, and the symptom is not a
+  wrong duration: the animation stops existing, silently.
 - **The glow trail is a mask that shares the head's animation.** The trace is drawn
   twice, once dim and always visible, once bright and clipped by a moving gradient.
   Give the trail its own animation and the glow lights up where the head is not.
