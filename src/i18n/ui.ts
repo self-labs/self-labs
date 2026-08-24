@@ -28,7 +28,7 @@ export const ui = {
     meta: {
       titulo: "Self-Labs: Laboratório de engenharia de Gustavo Cateim",
       descricao:
-        "Firmware, sistemas web e infraestrutura que rodam em servidor próprio, com deploy por webhook e chave privada fora do servidor. Portfólio de 19 projetos, com o que quebrou em produção documentado.",
+        "Firmware, sistemas web e infraestrutura que rodam em servidor próprio, com deploy por webhook e chave privada fora do servidor. Portfólio de 20 projetos, com o que quebrou em produção documentado.",
       idioma: "pt-BR",
       trocarIdioma: "English",
       trocarIdiomaLabel: "Ver esta página em inglês",
@@ -71,7 +71,7 @@ export const ui = {
       itens: {
         commits: {
           unidade: "commits",
-          legenda: (n: number) => `em ${n} repositórios públicos`,
+          legenda: (n: number) => `em ${n} repositórios, públicos e privados`,
         },
         prs: {
           unidade: "PRs aceitos",
@@ -293,7 +293,7 @@ export const ui = {
       canais: {
         email: "E-mail",
         whatsapp: "WhatsApp",
-        whatsappNota: "resposta em horário comercial",
+        whatsappNota: "horário comercial",
         whatsappLabel: "Abrir conversa no WhatsApp com uma mensagem já escrita",
       },
       links: [
@@ -322,7 +322,7 @@ export const ui = {
     meta: {
       titulo: "Self-Labs: The engineering lab of Gustavo Cateim",
       descricao:
-        "Firmware, web systems and infrastructure running on my own servers, deployed by webhook, with the private key kept off the box. A portfolio of 19 projects, including what broke in production.",
+        "Firmware, web systems and infrastructure running on my own servers, deployed by webhook, with the private key kept off the box. A portfolio of 20 projects, including what broke in production.",
       idioma: "en",
       trocarIdioma: "Português",
       trocarIdiomaLabel: "View this page in Portuguese",
@@ -360,7 +360,7 @@ export const ui = {
       itens: {
         commits: {
           unidade: "commits",
-          legenda: (n: number) => `across ${n} public repositories`,
+          legenda: (n: number) => `across ${n} repositories, public and private`,
         },
         prs: { unidade: "PRs merged", legenda: "into other people projects" },
         producao: {

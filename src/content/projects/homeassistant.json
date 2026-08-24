@@ -1,0 +1,28 @@
+{
+  "order": 18,
+  "featured": false,
+  "category": "infra",
+  "status": "producao",
+  "designator": "Q12",
+  "closed": true,
+  "stack": [
+    "Home Assistant Container",
+    "Docker via Portainer Stack",
+    "Mosquitto (MQTT)",
+    "Node-RED",
+    "ESPHome / Tasmota",
+    "HA Bridge",
+    "HACS, Mushroom e Bubble Card",
+    "YAML"
+  ],
+  "pt": {
+    "name": "Home Assistant da casa",
+    "pitch": "Automação residencial inteira rodando em servidor próprio: Home Assistant como cérebro, Mosquitto como broker MQTT, ESPHome para as placas ESP32 e Node-RED para os fluxos que ficam ilegíveis em YAML. Os dados moram em disco local, o deploy é uma stack do Portainer e nenhum comando depende de nuvem de fabricante. Cada automação vira um guia com o YAML inteiro, não trechos, porque o critério para entrar é ter funcionado tempo suficiente para confiar.",
+    "note": "A Alexa não conversa com o Home Assistant sem passar pela nuvem, então a stack sobe um HA Bridge que se apresenta como um hub Philips Hue. A Alexa encontra os dispositivos por descoberta local, o comando de voz nunca sai da LAN e continua funcionando com o link caído, que é justamente quando automação de casa costuma virar enfeite. O resto segue a mesma regra de desconfiar do padrão: o Mosquitto sobe com usuário e senha em vez de allow_anonymous, e a pasta do Node-RED precisa de chown 1000:1000 antes do primeiro start, porque o container não roda como root e sem isso ele sobe, morre e não deixa nada no log explicando o motivo."
+  },
+  "en": {
+    "name": "Home Assistant setup",
+    "pitch": "Whole-house automation running on its own server: Home Assistant as the brain, Mosquitto as the MQTT broker, ESPHome for the ESP32 boards and Node-RED for the flows that turn unreadable in YAML. Data lives on local disk, deployment is a Portainer stack, and no command depends on a vendor cloud. Every automation becomes a guide carrying the whole YAML rather than snippets, because the bar for inclusion is having worked long enough to be trusted.",
+    "note": "Alexa will not talk to Home Assistant without going through the cloud, so the stack runs an HA Bridge that presents itself as a Philips Hue hub. Alexa finds the devices through local discovery, voice commands never leave the LAN, and they keep working when the link is down, which is exactly when home automation tends to become decoration. The rest follows the same habit of distrusting defaults: Mosquitto comes up with a username and password instead of allow_anonymous, and the Node-RED folder needs chown 1000:1000 before the first start, because the container does not run as root and without it the thing starts, dies, and leaves nothing in the log to explain why."
+  }
+}
