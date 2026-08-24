@@ -25,9 +25,23 @@ const { secoes } = Astro.props;
 ---
 
 <aside class="trilha" aria-hidden="true">
+  <!--
+    O nucleo agrupa o fio e as vias. Solto na trilha fixa, o svg herdava a altura
+    da janela e o fio corria de ponta a ponta da tela enquanto os aneis ocupavam
+    pouco mais de 200px no centro: uma linha de fora a fora que nao pertencia a
+    nada. Agrupados, o fio mede o conjunto que ele liga, que e o que uma trilha
+    de placa faz.
+  -->
+  <div class="trilha-nucleo">
   <svg class="trilha-svg" viewBox="0 0 24 100" preserveAspectRatio="none" focusable="false">
     <defs>
-      <linearGradient id="trilha-grad" x1="0" y1="0" x2="0" y2="1">
+      <!--
+        userSpaceOnUse, e nao o padrao objectBoundingBox: uma <line> vertical tem
+        caixa de largura zero, e um gradiente em coordenadas relativas a ela nao
+        pinta nada. A trilha ficou tempo nenhum na tela por causa disso, e o que
+        se via eram cinco aneis soltos, sem fio ligando um ao outro.
+      -->
+      <linearGradient id="trilha-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="100">
         <stop offset="0%" stop-color="#0BE4EB" stop-opacity="0" />
         <stop offset="22%" stop-color="#0BE4EB" stop-opacity="0.55" />
         <stop offset="78%" stop-color="#3AF2A8" stop-opacity="0.55" />
@@ -52,6 +66,7 @@ const { secoes } = Astro.props;
       ))
     }
   </ol>
+  </div>
 </aside>
 
 <div class="progresso" aria-hidden="true"><span class="progresso-barra"></span></div>
@@ -94,19 +109,38 @@ const { secoes } = Astro.props;
       pointer-events: none;
     }
 
+    /*
+     * O nucleo e quem fica centralizado, e a altura dele sai das proprias vias.
+     * Antes o svg e a lista se posicionavam cada um por conta, e so a lista
+     * media o conteudo: o fio nao tinha como saber onde o conjunto comecava.
+     */
+    .trilha-nucleo {
+      position: absolute;
+      inset-block-start: 50%;
+      translate: 0 -50%;
+      inset-inline-start: 1.5rem;
+    }
+
     .trilha-svg {
       position: absolute;
-      inset-block: 0;
-      inset-inline-start: 1.5rem;
+      /*
+       * O fio entra antes do primeiro anel e sai depois do ultimo, em vez de
+       * nascer colado neles.
+       *
+       * A altura precisa ser declarada. Um <svg> e elemento substituido, entao
+       * fixar inset-block nas duas pontas NAO o estica: ele cai na altura
+       * intrinseca do proprio viewBox, que aqui e 24 por 100, e com 1.5rem de
+       * largura isso da 100px. Medido: o fio cobria os primeiros 100px de um
+       * conjunto de 216 e parava no meio da terceira via.
+       */
+      inset-block-start: calc(var(--s7) * -1);
+      height: calc(100% + var(--s7) * 2);
+      inset-inline-start: 0;
       width: 1.5rem;
-      height: 100%;
     }
 
     .vias {
-      position: absolute;
-      inset-block-start: 50%;
-      transform: translateY(-50%);
-      inset-inline-start: 1.5rem;
+      position: relative;
       display: flex;
       flex-direction: column;
       gap: var(--s5);
@@ -157,6 +191,13 @@ const { secoes } = Astro.props;
 
     .via-rotulo {
       position: absolute;
+      /*
+       * Sem isto o rotulo, mesmo invisivel, continua recebendo ponteiro e cobre
+       * 79px da coluna de conteudo: cliques em cards perto da lateral esquerda
+       * caiam nele. Ele aparece por hover no ancestral, entao nao precisa ser
+       * alvo de nada.
+       */
+      pointer-events: none;
       inset-inline-start: 1.75rem;
       display: flex;
       align-items: baseline;
@@ -200,58 +241,94 @@ const { secoes } = Astro.props;
 
 <script>
   /**
-   * Ilha 1 de 3: acende a via da secao visivel e move a barra de progresso.
+   * Ilha 1 de 3: acende a via da secao atual e move o fio de progresso.
    *
-   * IntersectionObserver com rootMargin recortando a faixa central da tela, para
-   * que a via mude quando a secao ocupa o meio do viewport, nao quando encosta
-   * na borda. Sem dependencia, sem listener de scroll por frame.
+   * A decisao de qual via acender e GEOMETRICA, e nao por IntersectionObserver.
+   *
+   * A versao com observador errava a secao em 40.5% da rolagem, por tres razoes
+   * que se somavam. A margem de recorte de 45% fazia a via trocar quase meia
+   * tela antes de a secao chegar. Quando nenhuma secao intersectava a faixa
+   * central, nenhuma entrada chegava e a via anterior ficava acesa indevidamente,
+   * inclusive no topo da pagina. E o desempate por intersectionRatio nunca
+   * chegava a rodar, porque com aquela margem so uma secao intersecta por vez.
+   *
+   * Perguntar "qual secao contem o meio da janela" responde certo sempre, custa
+   * uma passada por uma lista de oito, e roda no mesmo quadro que ja atualiza o
+   * fio de progresso.
    */
   const vias = document.querySelectorAll<HTMLAnchorElement>('[data-via]');
   const barra = document.querySelector<HTMLElement>('.progresso');
 
-  if (vias.length > 0) {
-    const alvos = [...vias]
-      .map((via) => document.getElementById(via.dataset.via!))
-      .filter((el): el is HTMLElement => el !== null);
+  /*
+   * A pagina tem oito secoes com ancora e a trilha mostra cinco marcos. As tres
+   * que sobram pertencem visualmente a um marco vizinho, e sem este mapa elas
+   * simplesmente nao acendiam nada: o portfolio completo continua sendo
+   * "projetos", os limites vem logo depois de "producao", e a validacao externa
+   * antecede "contato".
+   */
+  const VIA_DA_SECAO: Record<string, string> = {
+    lab: 'lab',
+    metodo: 'metodo',
+    projetos: 'projetos',
+    arquivo: 'projetos',
+    producao: 'producao',
+    limites: 'producao',
+    externo: 'contato',
+    contato: 'contato',
+  };
 
-    const acender = (id: string) => {
-      for (const via of vias) {
-        via.setAttribute('aria-current', String(via.dataset.via === id));
-      }
-    };
+  const secoes = [...document.querySelectorAll<HTMLElement>('section[id]')].filter((s) => VIA_DA_SECAO[s.id]);
 
-    const observador = new IntersectionObserver(
-      (entradas) => {
-        const visivel = entradas
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visivel) acender(visivel.target.id);
-      },
-      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.5, 1] },
-    );
+  const acender = (via: string | null) => {
+    for (const v of vias) {
+      // O estado tambem e APAGADO quando nenhuma secao esta em foco, coisa que a
+      // versao anterior nunca fazia: no topo da pagina ficava aceso o marco da
+      // ultima visita.
+      v.setAttribute('aria-current', String(via !== null && v.dataset.via === via));
+    }
+  };
 
-    for (const alvo of alvos) observador.observe(alvo);
-  }
+  let agendado = false;
 
-  if (barra) {
-    let agendado = false;
-    const medir = () => {
+  const atualizar = () => {
+    agendado = false;
+
+    if (barra) {
       const rolavel = document.documentElement.scrollHeight - window.innerHeight;
       const razao = rolavel > 0 ? Math.min(1, window.scrollY / rolavel) : 0;
       barra.style.setProperty('--avanco', `${(razao * 100).toFixed(2)}%`);
-      agendado = false;
-    };
-    addEventListener(
-      'scroll',
-      () => {
-        if (!agendado) {
-          agendado = true;
-          requestAnimationFrame(medir);
-        }
-      },
-      { passive: true },
-    );
-    medir();
+    }
+
+    if (vias.length === 0 || secoes.length === 0) return;
+
+    // O meio da janela e o ponto de leitura: e o que a pessoa esta de fato lendo.
+    const meio = window.scrollY + window.innerHeight / 2;
+    let atual: string | null = null;
+    for (const secao of secoes) {
+      const topo = secao.getBoundingClientRect().top + window.scrollY;
+      if (topo <= meio) atual = VIA_DA_SECAO[secao.id];
+    }
+    acender(atual);
+  };
+
+  const agendarMedida = () => {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(atualizar);
+  };
+
+  {
+    addEventListener('scroll', agendarMedida, { passive: true });
+
+    /*
+     * A altura da pagina muda sem ninguem rolar: o filtro do portfolio esconde
+     * cards e o redimensionamento reflui tudo. Sem observar isso, o fio ficava
+     * marcando a proporcao antiga ate a proxima rolagem.
+     */
+    addEventListener('resize', agendarMedida, { passive: true });
+    new ResizeObserver(agendarMedida).observe(document.documentElement);
+
+    atualizar();
   }
 
   /**
@@ -272,40 +349,109 @@ const { secoes } = Astro.props;
   (() => {
     const html = document.documentElement;
     const suportaSuave = 'scrollBehavior' in html.style;
+    const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+
+    /**
+     * Anima a rolagem quadro a quadro.
+     *
+     * Existe para um caso so: quando o sistema pede movimento reduzido, o Chrome
+     * converte "behavior: smooth" em salto instantaneo, enquanto o Safari anima
+     * assim mesmo. Os dois estao certos, a especificacao deixa a decisao para o
+     * navegador, e o resultado e a mesma pagina se comportando diferente em cada
+     * um. Aqui a rolagem de navegacao e tratada como orientacao, nao decoracao,
+     * entao ela anima nos dois.
+     *
+     * O custo esta assumido: rAF e estrangulado com a aba fora de foco, sob
+     * economia de bateria ou carga alta, e nesse caso a viagem degrada para
+     * poucos quadros. Por isso este caminho e a excecao, e nao o padrao.
+     */
+    let quadro = 0;
+    const animar = (destino: number) => {
+      cancelAnimationFrame(quadro);
+      const partida = window.scrollY;
+      const distancia = destino - partida;
+      if (Math.abs(distancia) < 2) {
+        window.scrollTo(0, destino);
+        return;
+      }
+
+      // Cresce com a raiz da distancia e para em 900ms, senao atravessar a
+      // pagina inteira viraria uma viagem de varios segundos.
+      const duracao = Math.min(900, Math.max(320, Math.sqrt(Math.abs(distancia)) * 26));
+      const inicio = performance.now();
+      const suavizar = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+      const passo = (agora: number) => {
+        const t = Math.min(1, (agora - inicio) / duracao);
+        // "instant" e explicito: sem isso a chamada herdaria o scroll-behavior
+        // smooth do html e uma animacao nativa competiria com esta, quadro a
+        // quadro, justamente no navegador que este caminho existe para atender.
+        window.scrollTo({ top: partida + distancia * suavizar(t), behavior: 'instant' });
+        if (t < 1) quadro = requestAnimationFrame(passo);
+      };
+      quadro = requestAnimationFrame(passo);
+    };
+
+    const parar = () => cancelAnimationFrame(quadro);
 
     /*
-     * A folga vem do proprio CSS (scroll-padding-top), nao de uma medicao do
-     * cabecalho, para que o destino coincida exatamente com o ponto de encaixe
-     * que o scroll-snap usaria. Sem isso a rolagem termina com um ajuste visivel.
+     * O gesto da pessoa vence a animacao, mas so o gesto que de fato rola.
+     *
+     * A versao anterior cancelava em qualquer keydown, e isso foi medido como
+     * defeito grave: apertar Shift, Ctrl ou Tab durante a viagem congelava a
+     * pagina no meio do caminho, uma vez a 1.8% do destino, com a URL ja
+     * apontando para a secao. Segurar uma tecla modificadora e algo que se faz
+     * sem pensar, e quem mais sofria era justamente quem navega por teclado.
+     *
+     * "touchmove" e nao "touchstart" pela mesma razao: encostar no link nao e
+     * rolar, arrastar o dedo e.
      */
-    const folgaAncora = () => Number.parseFloat(getComputedStyle(html).scrollPaddingTop) || 88;
+    const TECLAS_QUE_ROLAM = new Set([
+      'ArrowUp',
+      'ArrowDown',
+      'PageUp',
+      'PageDown',
+      'Home',
+      'End',
+      ' ',
+      'Spacebar',
+    ]);
+
+    addEventListener('wheel', parar, { passive: true });
+    addEventListener('touchmove', parar, { passive: true });
+    addEventListener(
+      'keydown',
+      (evento) => {
+        if (TECLAS_QUE_ROLAM.has(evento.key)) parar();
+      },
+      { passive: true },
+    );
+
+    /*
+     * A folga vem da propria secao de destino (scroll-margin-top), que e a unica
+     * fonte dela desde que o scroll-padding-top saiu do html. Ler daqui garante
+     * que o destino do JavaScript e o ponto de encaixe do CSS sejam o mesmo
+     * numero, e nao dois que se somam.
+     */
+    const folgaAncora = (secao: HTMLElement) =>
+      Number.parseFloat(getComputedStyle(secao).scrollMarginTop) || 88;
 
     let restaurarEncaixe = 0;
 
-    const irPara = (secao: HTMLElement) => {
-      const destino = Math.max(
+    const destinoDe = (secao: HTMLElement) =>
+      Math.max(
         0,
         Math.min(
-          secao.getBoundingClientRect().top + window.scrollY - folgaAncora(),
+          secao.getBoundingClientRect().top + window.scrollY - folgaAncora(secao),
           html.scrollHeight - window.innerHeight,
         ),
       );
 
+    const irPara = (secao: HTMLElement) => {
+      const destino = destinoDe(secao);
+
       /*
-       * Nao ha checagem de prefers-reduced-motion aqui, e isso e deliberado.
-       *
-       * Quem decide o que fazer com essa preferencia diante de "behavior:
-       * smooth" e o navegador, nao esta folha. Medido num iPhone com iOS 26.6.1
-       * e "Reduzir movimento" LIGADO: o Safari anima a rolagem assim mesmo, com
-       * oito posicoes intermediarias, porque nao trata rolagem de navegacao como
-       * movimento decorativo a suprimir. A versao anterior deste arquivo cortava
-       * a animacao por conta propria nesse caso, ficando mais restritiva que a
-       * plataforma e entregando o salto seco relatado justamente a quem tinha a
-       * preferencia ligada.
-       *
-       * A preferencia continua sendo respeitada onde ela de fato se aplica: a
-       * cascata do isotipo, o pulso do ECG e a entrada do menu param, e isso vive
-       * em app.css. Movimento decorativo para; movimento de orientacao fica.
+       * Sem suporte a rolagem suave nao ha o que animar: vai direto.
        */
       if (!suportaSuave) {
         window.scrollTo(0, destino);
@@ -324,14 +470,47 @@ const { secoes } = Astro.props;
         html.style.scrollSnapType = '';
       }, 1200);
 
+      /*
+       * Duas rotas, e a escolha depende do que o navegador faria com a
+       * preferencia de movimento reduzido.
+       *
+       * Sem a preferencia ligada, o caminho nativo e melhor: roda no compositor,
+       * nao depende de requestAnimationFrame e nao degrada quando a aba perde
+       * foco ou o aparelho entra em economia de bateria.
+       *
+       * Com a preferencia ligada, o Chrome converte "behavior: smooth" em salto
+       * instantaneo, enquanto o Safari anima assim mesmo. Como a rolagem aqui e
+       * orientacao e nao decoracao, o quadro a quadro assume nesse caso, e a
+       * pagina se comporta igual nos dois navegadores.
+       */
+      if (semMovimento.matches) {
+        animar(destino);
+        return;
+      }
+
       window.scrollTo({ top: destino, behavior: 'smooth' });
     };
 
     // Vale para o menu do cabecalho, para o menu do celular, para as vias da
     // trilha e para os botoes do hero: qualquer link que aponte para uma ancora.
     addEventListener('click', (evento) => {
+      /*
+       * Sai cedo no que nao e um clique simples de navegacao. Sem isto, um
+       * Ctrl+clique ou Cmd+clique num item do menu deixava de abrir nova aba,
+       * porque o preventDefault vinha antes de qualquer verificacao.
+       */
+      if (evento.defaultPrevented || evento.button !== 0) return;
+      if (evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
+
       const link = (evento.target as HTMLElement)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
       if (!link) return;
+
+      /*
+       * O link de pular para o conteudo fica de fora. Ele existe para MOVER O
+       * FOCO, e nao para rolar: interceptado aqui, ele deixava de cumprir a
+       * unica funcao que tem, e a pagina continuava com o foco no mesmo lugar.
+       */
+      if (link.classList.contains('pular')) return;
 
       const id = link.getAttribute('href')!.slice(1);
       if (!id) return;
@@ -342,19 +521,38 @@ const { secoes } = Astro.props;
       evento.preventDefault();
       irPara(secao);
 
-      // Mantem a URL compartilhavel sem deixar o navegador saltar sozinho.
-      history.pushState(null, '', `#${id}`);
+      /*
+       * O foco acompanha a pagina, senao quem navega por teclado continua no
+       * cabecalho depois de escolher uma secao. "preventScroll" e obrigatorio
+       * aqui: sem ele o navegador salta para o elemento e mata a animacao que
+       * acabou de comecar.
+       */
+      secao.setAttribute('tabindex', '-1');
+      secao.focus({ preventScroll: true });
+
+      /*
+       * replaceState, e nao pushState: cada clique empilhava uma entrada de
+       * historico mesmo quando a pagina nem se movia, e voltar exigia apertar o
+       * botao tantas vezes quantos cliques tivessem sido dados.
+       */
+      if (location.hash !== `#${id}`) history.replaceState(null, '', `#${id}`);
     });
 
-    // Chegada por link direto com fragmento: posiciona depois da pintura, para
-    // que a folga do cabecalho ja esteja medida corretamente.
-    if (location.hash.length > 1) {
+    /*
+     * Chegada por fragmento, seja no carregamento, seja pelo botao voltar ou
+     * avancar, seja editando o hash na barra de enderecos. Sem tratar popstate e
+     * hashchange, o botao avancar mudava a URL sem mover a pagina.
+     */
+    const irParaOHash = (animado: boolean) => {
+      if (location.hash.length <= 1) return;
       const alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-      if (alvo) {
-        requestAnimationFrame(() =>
-          window.scrollTo(0, alvo.getBoundingClientRect().top + window.scrollY - folgaAncora()),
-        );
-      }
-    }
+      if (!alvo) return;
+      if (animado) irPara(alvo);
+      else requestAnimationFrame(() => window.scrollTo({ top: destinoDe(alvo), behavior: 'instant' }));
+    };
+
+    addEventListener('popstate', () => irParaOHash(true));
+    addEventListener('hashchange', () => irParaOHash(true));
+    irParaOHash(false);
   })();
 </script>
