@@ -162,7 +162,7 @@ export const ui = {
     portfolio: {
       codigo: "ARQ",
       rotulo: "Portfólio completo",
-      titulo: "Dezenove projetos",
+      titulo: "Projetos",
       subtitulo:
         "De firmware em C rodando em ESP32 até imagem Docker multi-arquitetura. Repositórios privados aparecem sem link, porque o código é de cliente ou tem chave dentro.",
       filtroLabel: "Filtrar projetos por categoria",
@@ -361,7 +361,8 @@ export const ui = {
       itens: {
         commits: {
           unidade: "commits",
-          legenda: (n: number) => `across ${n} repositories, public and private`,
+          legenda: (n: number) =>
+            `across ${n} repositories, public and private`,
         },
         prs: { unidade: "PRs merged", legenda: "into other people projects" },
         producao: {
@@ -449,7 +450,7 @@ export const ui = {
     portfolio: {
       codigo: "ARC",
       rotulo: "Full portfolio",
-      titulo: "Nineteen projects",
+      titulo: "Projects",
       subtitulo:
         "From C firmware on an ESP32 to multi-architecture Docker images. Private repositories appear without a link, because the code belongs to a client or holds keys.",
       filtroLabel: "Filter projects by category",

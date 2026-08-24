@@ -261,3 +261,34 @@ describe('versao CalVer', () => {
     assert.ok(Number.isInteger(rev) && rev >= 1, `revisao invalida: ${pkg.version}`);
   });
 });
+
+describe('contagens escritas na interface', () => {
+  /*
+   * Numero escrito a mao vira mentira sozinho, e ja virou duas vezes aqui: a
+   * vitrine passou de dezenove para vinte projetos e sobraram um titulo
+   * "Dezenove projetos", um "Nineteen projects" e um comentario no CSS falando
+   * de uma grade de dezenove. Nada disso quebra build, nada disso aparece em
+   * teste de tipo, e o leitor da pagina e o unico que percebe.
+   */
+  const ui = fs.readFileSync(path.join(ROOT, 'src/i18n/ui.ts'), 'utf8');
+  const total = arquivos.length;
+
+  test('nenhuma contagem de projeto escrita por extenso', () => {
+    const EXTENSO =
+      /\b(dezesseis|dezessete|dezoito|dezenove|vinte|sixteen|seventeen|eighteen|nineteen|twenty)\b/gi;
+    const achados = [...ui.matchAll(EXTENSO)].map((m) => m[0]);
+    assert.deepEqual(
+      achados,
+      [],
+      `numero por extenso em ui.ts: ${achados.join(', ')}. Use o total real ou nao cite numero.`,
+    );
+  });
+
+  test('todo numero de projetos citado bate com a vitrine', () => {
+    const falhas = [];
+    for (const [trecho, n] of ui.matchAll(/(\d+)\s+(?:projetos|projects)\b/gi)) {
+      if (Number(n) !== total) falhas.push(`"${trecho.trim()}" mas existem ${total}`);
+    }
+    assert.deepEqual(falhas, [], `contagem defasada:\n${falhas.join('\n')}`);
+  });
+});

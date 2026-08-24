@@ -119,8 +119,8 @@ html {
  * defeito: em navegador movel o encaixe disputa com a rolagem suave em curso e o
  * resultado tipico e a pagina saltar de uma vez, que foi a queixa relatada.
  *
- * Por proximidade, nunca obrigatorio: com "mandatory" a grade de dezenove
- * projetos prenderia o leitor na primeira tela dela.
+ * Por proximidade, nunca obrigatorio: com "mandatory" a grade de projetos
+ * prenderia o leitor na primeira tela dela.
  */
 @media (min-width: 60rem) and (pointer: fine) {
   html {
