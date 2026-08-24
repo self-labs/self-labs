@@ -6,9 +6,9 @@
  * isotipo acendem em cascata do centro para fora, na ordem que o script de marca
  * calculou por distancia do nucleo (atributo --i). A placa parece energizar.
  *
- * A segunda: uma linha de ECG corre sob o bloco inteiro, sem parar. A tagline
- * promete uptime, entao o sinal vital fica visivel na pagina em vez de so
- * escrito. Esse traco e desenhado aqui, nao vem do logo.
+ * A segunda: uma linha de ECG fecha o bloco, com um cabecote varrendo o traco.
+ * A tagline promete uptime, entao o sinal vital fica visivel na pagina em vez de
+ * so escrito. Esse traco e desenhado aqui, nao vem do logo.
  */
 import { ui, type Locale } from '../i18n/ui';
 import isotipo from '../assets/brand/isotipo.svg?raw';
@@ -20,10 +20,137 @@ interface Props {
 const t = ui[Astro.props.locale].hero;
 
 /**
- * Um ciclo de ECG. Repetido lado a lado forma a faixa continua: linha de base,
- * complexo QRS, onda T, linha de base de novo.
+ * Um ciclo de ECG, em coordenadas relativas: linha de base, onda P, complexo
+ * QRS, linha de base, onda T, linha de base de novo. Cento e vinte unidades de
+ * ponta a ponta, comecando e terminando na mesma altura, o que permite repetir
+ * lado a lado sem emenda visivel.
+ *
+ * Relativo, e nao absoluto, porque o mesmo desenho serve a duas coisas: o traco
+ * na tela e o trilho por onde o cabecote corre.
  */
-const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 6 0 3 7 9 7 H120';
+const CICLO = 'h30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 h15 q6 0 9 -7 3 -7 6 0 3 7 9 7 h24';
+
+/**
+ * O traco visivel. Oito ciclos.
+ *
+ * O numero vem da geometria, nao de gosto: a faixa cabe no maximo 771 unidades
+ * do viewBox (1080px de largura util divididos pela escala de 1.4), e o cabecote
+ * viaja no maximo 720. Oito ciclos dao 960 unidades e cobrem os dois com folga.
+ */
+const FITA = `M0 20 ${CICLO.repeat(8)}`;
+
+/**
+ * A geometria do ciclo, ponto a ponto, na ordem em que o traco a percorre.
+ * Os tres trechos com tres pontos sao as curvas quadraticas da onda T.
+ */
+const VERTICES: Array<[number, number] | [number, number, number, number]> = [
+  [30, 20], [34, 19], [37, 21], [41, 7], [46, 34], [50, 20], [53, 23], [57, 20], [72, 20],
+  [78, 20, 81, 13], // curva: controle e fim
+  [84, 6, 87, 13],
+  [90, 20, 96, 20],
+  [120, 20],
+];
+
+/**
+ * Altura da onda em funcao do avanco horizontal.
+ *
+ * Por que nao usar offset-path, que seria uma linha de CSS: naquele modelo o
+ * elemento avanca por COMPRIMENTO DE ARCO, e nao por X. No complexo QRS a curva
+ * sobe 27 unidades em 5 de largura, entao ali o cabecote gasta muito percurso
+ * andando quase nada na horizontal, enquanto o avanco segue em velocidade
+ * constante. Medido: os dois chegavam a 12.7 unidades fora de fase, e justamente
+ * nos picos, que e onde o olho repara.
+ *
+ * Amostrando a altura em passos iguais de X, o avanco horizontal volta a ser
+ * linear e casa exatamente com o deslocamento do grupo de avanco.
+ */
+function alturaPorX(): Array<{ x: number; y: number }> {
+  const pontos: Array<{ x: number; y: number }> = [{ x: 0, y: 20 }];
+  let [px, py] = [0, 20];
+
+  for (const v of VERTICES) {
+    if (v.length === 2) {
+      /*
+       * Trecho reto: basta o vertice final. Entre dois quadros o CSS interpola
+       * em linha reta, que e exatamente a forma do segmento, entao acrescentar
+       * pontos no meio nao ganharia precisao nenhuma.
+       *
+       * Uma versao anterior reamostrava tudo em passos iguais de X, e isso saia
+       * pior: com um ponto a cada duas unidades, os vertices do complexo QRS
+       * (x=41 e x=46, onde a onda vira) caiam entre amostras e eram cortados, o
+       * que tirava o cabecote do traco justamente no pico.
+       */
+      const [x, y] = v;
+      pontos.push({ x, y });
+      [px, py] = [x, y];
+      continue;
+    }
+
+    // Curva quadratica: amostrada, porque nenhuma reta a reproduz.
+    const [cx, cy, x, y] = v;
+    for (let i = 1; i <= 12; i++) {
+      const t = i / 12;
+      const u = 1 - t;
+      pontos.push({
+        x: u * u * px + 2 * u * t * cx + t * t * x,
+        y: u * u * py + 2 * u * t * cy + t * t * y,
+      });
+    }
+    [px, py] = [x, y];
+  }
+
+  return pontos;
+}
+
+/**
+ * A oscilacao vertical do cabecote: um ciclo, so o Y.
+ *
+ * Este e o conserto estrutural do defeito que voltou tres vezes. Antes um unico
+ * conjunto de quadros carregava X e Y juntos, entao cada largura de tela exigia
+ * o seu proprio keyframe gigante, e qualquer erro no numero de ciclos tirava o
+ * ponto de cima da onda ou o fazia sumir no meio da faixa.
+ *
+ * Separando os dois eixos em grupos aninhados, o Y passa a ser um ciclo unico
+ * que se repete para sempre, e o X vira uma reta. A fase casa sozinha porque a
+ * duracao do avanco e sempre um multiplo inteiro da duracao da onda: nao ha como
+ * os dois sairem de sincronia sem que alguem mude os dois numeros ao mesmo tempo,
+ * e ha teste para isso.
+ *
+ * O Y e absoluto no sistema do SVG. Os circulos ficam em cy=0, entao descontar
+ * as 20 unidades da linha de base faria o cabecote correr acima do traco.
+ */
+const QUADROS_ONDA = alturaPorX()
+  .map(({ x, y }) => `${((x / 120) * 100).toFixed(3)}% { translate: 0 ${y.toFixed(2)}px; }`)
+  .join('\n');
+
+/**
+ * O avanco horizontal, uma reta por faixa de largura.
+ *
+ * Quantos ciclos cabem na tela e o unico numero que depende do tamanho do
+ * aparelho. A faixa vive dentro da casca, entao a largura util vai de 272px num
+ * aparelho de 320 ate 1080px travados a partir de 74rem. Com o encaixe "slice" a
+ * escala e sempre 1.4 (a altura de 56px sobre as 40 unidades do viewBox manda em
+ * qualquer largura util abaixo de 2016px), logo cada ciclo ocupa 168px fixos.
+ *
+ * Os cortes saem dai: o percurso precisa ficar entre 0.84 e 1.26 vezes a largura
+ * util. Abaixo disso o ponto morre em area opaca e some do nada, que era a
+ * queixa; acima, passa tempo demais fora do quadro.
+ */
+const CICLOS = [2, 3, 4, 5, 6];
+const QUADROS_AVANCO = CICLOS.map(
+  (n) => `@keyframes avanco-${n} {
+  from { translate: 0; }
+  to { translate: ${n * 120}px; }
+}`,
+).join('\n');
+
+/**
+ * O comprimento do rastro, em unidades do viewBox.
+ *
+ * Dois ciclos e meio: o bastante para o brilho cobrir um batimento inteiro mais
+ * a linha de base antes dele, entao o QRS aceso nunca fica cortado ao meio.
+ */
+const RASTRO = 300;
 ---
 
 <section class="hero">
@@ -56,18 +183,78 @@ const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 
   </div>
 
   <!--
-    Sinal vital: corre sob o hero inteiro, de borda a borda.
-    O viewBox tem a largura de uma tela grande e os ciclos sao repetidos em
-    escala 1:1, para que as ondas nao achatem quando o SVG estica na horizontal.
-    Sao 13 ciclos: 12 cobrem a faixa e o 13o entra pela direita durante o loop.
+    Sinal vital.
+
+    Fica dentro da casca de proposito. Solto na secao ele atravessava a janela
+    inteira enquanto todo o resto da pagina para em 74rem, e a borda superior
+    virava um risco de ponta a ponta que nao pertencia a nenhum bloco. Alinhado a
+    coluna de conteudo ele le como o rodape do hero, que e o que e.
+
+    O encaixe e "slice" e nao "none". Com "none" o desenho e esticado para caber
+    na largura disponivel, entao numa tela estreita os mesmos 1440 de viewBox
+    comprimiam quase quatro vezes na horizontal e alongavam na vertical: os
+    batimentos viravam espetos amontoados. Com "slice" a proporcao e preservada e
+    o que sobra e cortado, exatamente como um monitor de verdade, que mostra
+    menos batimentos numa tela menor em vez de espremer os mesmos.
   -->
-  <div class="ecg" aria-hidden="true">
-    <svg class="ecg-svg" viewBox="0 0 1440 40" preserveAspectRatio="none" focusable="false">
-      <g class="ecg-fita">
-        {Array.from({ length: 13 }, (_, i) => <path d={CICLO} transform={`translate(${i * 120} 0)`} />)}
-      </g>
-    </svg>
+  <div class="casca">
+    <div class="ecg" aria-hidden="true">
+      <svg class="ecg-svg" viewBox="0 0 1440 40" preserveAspectRatio="xMinYMid slice" focusable="false">
+        <defs>
+          <!--
+            O rastro de fosforo. O gradiente vive em userSpaceOnUse alinhado ao
+            proprio retangulo, entao quando o retangulo anda o brilho anda junto,
+            sem que nenhuma conta precise repetir a posicao do cabecote.
+          -->
+          <linearGradient id="ecg-brilho" gradientUnits="userSpaceOnUse" x1={-RASTRO} y1="0" x2="0" y2="0">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0" />
+            <stop offset="62%" stop-color="#fff" stop-opacity="0.2" />
+            <stop offset="100%" stop-color="#fff" stop-opacity="1" />
+          </linearGradient>
+          <mask id="ecg-rastro" maskUnits="userSpaceOnUse" x="-400" y="0" width="2400" height="40">
+            <g class="ecg-rastro">
+              <rect x={-RASTRO} y="0" width={RASTRO} height="40" fill="url(#ecg-brilho)" />
+            </g>
+          </mask>
+        </defs>
+
+        <!--
+          O traco entra duas vezes. O de baixo fica sempre visivel e apagado, e e
+          o que da contexto: sem ele a faixa ficaria vazia a frente do cabecote. O
+          de cima e o mesmo desenho aceso, recortado pela mascara do rastro, entao
+          so aparece no trecho que o cabecote acabou de percorrer.
+        -->
+        <path class="ecg-traco" d={FITA} />
+        <path class="ecg-traco ecg-traco-vivo" d={FITA} mask="url(#ecg-rastro)" />
+
+        <!--
+          Dois grupos, um por eixo. O de fora anda em X, o de dentro sobe e desce
+          em Y. Aninhados, os dois "translate" compoem sem que nenhum precise
+          conhecer o outro.
+        -->
+        <g class="ecg-avanco">
+          <g class="ecg-cabecote">
+            <circle class="ecg-halo" r="5.5" />
+            <circle class="ecg-ponto" r="2.4" />
+          </g>
+        </g>
+      </svg>
+    </div>
   </div>
+
+  <!--
+    Os quadros sao calculados no build, e nao escritos a mao: eles dependem da
+    geometria da onda, entao mudar o desenho do ciclo recalcula a animacao
+    sozinho. Vao numa folha propria porque o bloco <style> do Astro e estatico e
+    nao aceita interpolacao.
+  -->
+  <style
+    is:inline
+    set:html={`@keyframes onda {
+${QUADROS_ONDA}
+}
+${QUADROS_AVANCO}`}
+  />
 </section>
 
 <style>
@@ -224,11 +411,72 @@ const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 
   /* --------------------------------------------------------------- ecg - */
 
   .ecg {
+    /*
+     * A batida do coracao desenhado. Um ciclo por 1.25s da 48 por minuto: repouso
+     * tranquilo, presente sem agitar a pagina. Tudo no ECG deriva daqui, entao
+     * mudar a cadencia e mexer num numero so, e nada sai de fase.
+     */
+    --batida: 1.25s;
+
+    /*
+     * Quantos ciclos o cabecote atravessa. Mora aqui, e nao no grupo que anda,
+     * porque a mascara tambem precisa dele: os dois descrevem o mesmo percurso.
+     */
+    --ciclos: 2;
+
+    /* A altura da faixa, nomeada porque o --fim precisa dela para a conta. */
+    --altura: 3.5rem;
+
+    /*
+     * Onde o cabecote morre, derivado da geometria e nao escrito a mao.
+     *
+     * O viewBox mostra 40 unidades de altura e o ciclo tem 120 de largura, entao
+     * cada ciclo ocupa exatamente tres vezes a area de CONTEUDO da faixa, que e
+     * a altura menos a borda superior sob border-box.
+     *
+     * Nao vale fixar em pixels. Medido no Chrome com o Windows em 125%, a borda
+     * de 1px computa 0.8px e a escala vai de 1.375 para 1.380: um --fim cravado
+     * em 165px por ciclo erra 3.6px numa faixa de 1080 e passa a errar mais
+     * conforme o zoom. Derivando, a conta acompanha sozinha.
+     */
+    --fim: calc(var(--ciclos) * 3 * (var(--altura) - var(--borda)));
+
+    /*
+     * O comprimento do apagamento, igual nas duas pontas.
+     *
+     * Eram 2.5rem na entrada e 3.5rem na saida, e a diferenca aparecia: o ponto
+     * nascia rapido e morria devagar, o que chegou como "inicia bem, finaliza
+     * mal". Simetrico, nascer e morrer levam o mesmo tempo.
+     */
+    --fade: 2.5rem;
+
     margin-block-start: var(--s8);
-    height: 3.5rem;
+    height: var(--altura);
     border-block-start: var(--borda) solid var(--linha);
     background: linear-gradient(180deg, color-mix(in srgb, var(--ciano) 3%, transparent), transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+
+    /*
+     * A mascara termina onde o cabecote termina, e nao numa porcentagem fixa.
+     *
+     * Esta e a correcao da queixa "some antes de chegar ao fim". Com um corte
+     * fixo em 78% o ponto chegava a 91.7% da faixa e passava a ultima quarta
+     * parte da viagem desaparecendo, porque o traco seguia visivel para alem
+     * dele: existia um "fim da linha" que ele nunca alcancava.
+     *
+     * Amarrando o apagamento ao --fim, o traco acaba junto com o ponto. Nao
+     * sobra linha depois dele, entao nao ha como parecer que faltou percurso.
+     *
+     * Quando o percurso passa da largura da faixa, o gradiente termina fora da
+     * caixa e o traco simplesmente vai ate a borda: o ponto sai de cena pela
+     * direita, que tambem e chegar ao fim.
+     */
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--fade),
+      #000 calc(var(--fim) - var(--fade)),
+      transparent var(--fim)
+    );
   }
 
   .ecg-svg {
@@ -236,38 +484,181 @@ const CICLO = 'M0 20 H30 l4 -1 3 2 4 -14 5 27 4 -14 3 3 4 -3 H72 q6 0 9 -7 3 -7 
     height: 100%;
   }
 
-  .ecg-fita {
+  .ecg-traco {
     fill: none;
     stroke: var(--menta);
     stroke-width: 1.4;
     stroke-linecap: round;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
-    opacity: 0.75;
-    animation: correr 9s linear infinite;
+    /*
+     * Fraco de proposito: esta e a copia de baixo, que existe so para a faixa
+     * nao ficar vazia a frente do cabecote. O contraste entre ela e a copia
+     * acesa e o que produz a sensacao de varredura.
+     */
+    opacity: 0.26;
   }
 
-  @keyframes correr {
-    from {
-      transform: translateX(0);
+  .ecg-traco-vivo {
+    opacity: 1;
+  }
+
+  /*
+   * O avanco: a varredura da esquerda para a direita.
+   *
+   * O traco fica parado e o cabecote corre por cima, que e como funciona um
+   * monitor de leito. A versao anterior rolava a fita E corria o ponto ao mesmo
+   * tempo, e o deslocamento visivel virava a diferenca entre os dois. Aquela
+   * diferenca so podia valer multiplos de 120 unidades, nunca casava com a
+   * largura real da janela, e o ponto acabava morrendo no meio da faixa: em um
+   * monitor de 1920 ele terminava a 79% da largura, em plena area opaca.
+   *
+   * A duracao e o numero de ciclos andam sempre juntos, por construcao: um ciclo
+   * leva --batida, entao N ciclos levam N vezes --batida. Ha teste que falha se
+   * alguem trocar o keyframe sem trocar o --ciclos ao lado.
+   */
+  .ecg-avanco,
+  .ecg-rastro {
+    animation: avanco-2 calc(var(--ciclos) * var(--batida)) linear infinite;
+  }
+
+  /*
+   * Quanto mais larga a faixa, mais ciclos o cabecote precisa atravessar para
+   * chegar ate a borda que apaga. Cada ciclo ocupa 168px na tela, sempre, entao
+   * os cortes sao a largura util dividida por 168.
+   */
+  @media (min-width: 28rem) {
+    .ecg {
+      --ciclos: 3;
     }
-    to {
-      transform: translateX(-120px);
+
+    .ecg-avanco,
+    .ecg-rastro {
+      animation-name: avanco-3;
     }
   }
 
+  @media (min-width: 39rem) {
+    .ecg {
+      --ciclos: 4;
+    }
+
+    .ecg-avanco,
+    .ecg-rastro {
+      animation-name: avanco-4;
+    }
+  }
+
+  @media (min-width: 50rem) {
+    .ecg {
+      --ciclos: 5;
+    }
+
+    .ecg-avanco,
+    .ecg-rastro {
+      animation-name: avanco-5;
+    }
+  }
+
+  /*
+   * Em 60rem a casca troca o recuo lateral de 2x1.5rem para 4.5rem mais 2rem, e
+   * a largura util cai de 911px para 856px de uma vez. O corte acompanha essa
+   * mudanca em vez de ignora-la.
+   */
+  @media (min-width: 60rem) {
+    .ecg {
+      --ciclos: 6;
+    }
+
+    .ecg-avanco,
+    .ecg-rastro {
+      animation-name: avanco-6;
+    }
+  }
+
+  /*
+   * A oscilacao: um ciclo da onda, para sempre, independente da largura.
+   *
+   * Como o avanco dura um multiplo inteiro disto, o cabecote pisa no mesmo lugar
+   * da onda em qualquer tela, sem nenhum ajuste de fase.
+   */
+  .ecg-cabecote {
+    animation: onda var(--batida) linear infinite;
+  }
+
+  .ecg-ponto {
+    fill: var(--texto);
+    /* O nucleo e claro para ler como brasa, nao como um circulo verde chapado. */
+    filter: drop-shadow(0 0 3px var(--menta));
+  }
+
+  /*
+   * O halo respira em brilho, nunca em tamanho.
+   *
+   * Antes ele inchava ate 2.1 vezes num quadro especifico do ciclo, e como a
+   * volta do cabecote era mais longa que a da fita, isso saia como dois estouros
+   * secos em pontos sempre iguais da linha. Variar so a opacidade, num vaivem
+   * continuo, da a respiracao sem o susto.
+   *
+   * A duracao e proposital: 4.4s nao e multiplo nem divisor de 1.25s, entao a
+   * respiracao nunca cai duas vezes no mesmo lugar do traco.
+   */
+  .ecg-halo {
+    fill: var(--menta);
+    animation: respirar 4.4s ease-in-out infinite;
+  }
+
+  @keyframes respirar {
+    0%,
+    100% {
+      opacity: 0.16;
+    }
+    50% {
+      opacity: 0.36;
+    }
+  }
+
+  /*
+   * Movimento reduzido, separando o que incomoda do que nao incomoda.
+   *
+   * O que para: a cascata de energizacao. Ela acende trinta e seis trilhas em
+   * sequencia logo no carregamento, puxa o olho e e o unico movimento grande do
+   * hero. Com a preferencia ligada o simbolo simplesmente aparece pronto.
+   *
+   * O que fica: o ECG e o pulso do kicker. Nenhum dos dois desloca elemento na
+   * tela. Um e um ponto de 2.4px que atravessa a faixa devagar, o outro e um
+   * brilho que expande oito pixels e some. A preferencia existe por causa de
+   * desconforto vestibular, causado por deslocamento amplo, parallax e zoom, e
+   * nao por um sinal fino correndo no rodape do hero. Parar tudo custava a
+   * assinatura da pagina sem devolver conforto a ninguem.
+   *
+   * O meio termo e a cadencia, e agora ela e um numero so: dobrar --batida
+   * desacelera a onda e o avanco na mesma proporcao, sem chance de tirar os dois
+   * de fase. Era exatamente esse o erro que existia aqui quando cada animacao
+   * carregava a propria duracao.
+   */
   @media (prefers-reduced-motion: reduce) {
     .hero-marca :global(.sl-trace) {
       opacity: 1;
-      animation-delay: 0ms !important;
+      animation: none !important;
+    }
+
+    .hero-marca :global(#sl-core) {
+      animation: none !important;
     }
 
     .hero-ponto {
-      animation: none;
+      animation-duration: 4.8s !important;
+      animation-iteration-count: infinite !important;
     }
 
-    .ecg-fita {
-      animation: none;
+    .ecg {
+      --batida: 2.5s;
+    }
+
+    .ecg-halo {
+      animation-duration: 8.8s !important;
+      animation-iteration-count: infinite !important;
     }
   }
 </style>
