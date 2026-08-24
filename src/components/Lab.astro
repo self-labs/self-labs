@@ -38,7 +38,12 @@ const t = ui[Astro.props.locale].lab;
     font-size: 1.0625rem;
   }
 
-  .lab-primeiro {
+  /*
+   * Precisa do ancestral no seletor: ".lab-texto p" tem a mesma especificidade
+   * de classe mais elemento e vem antes, entao vencia, e o paragrafo de abertura
+   * nunca recebia o corpo maior nem a cor clara que o comentario promete.
+   */
+  .lab-texto .lab-primeiro {
     font-size: 1.1875rem;
     color: var(--texto);
     padding-inline-start: var(--s5);
@@ -46,7 +51,7 @@ const t = ui[Astro.props.locale].lab;
   }
 
   @media (min-width: 48rem) {
-    .lab-primeiro {
+    .lab-texto .lab-primeiro {
       font-size: 1.3125rem;
       line-height: 1.5;
     }

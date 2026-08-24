@@ -8,8 +8,14 @@
  * Contrastes medidos contra o fundo base:
  *   texto           #E8F0F2  12.8:1
  *   texto-2         #93A7B0   5.9:1
+ *   texto-3         #839AA4   5.0:1
  *   ciano           #0BE4EB   9.4:1
  *   menta           #3AF2A8  10.2:1
+ *
+ * O texto-3 ja foi #6D8089, que reprovava em 210 nos de texto: dava 3.4:1 sobre
+ * o fundo base e menos ainda sobre as superficies elevadas dos cards. Ele
+ * carrega rotulo de secao, legenda de numero e etiqueta de stack, ou seja, texto
+ * pequeno, onde o limite de 4.5:1 vale integralmente.
  */
 
 /* ---------------------------------------------------------------- tokens - */
@@ -31,7 +37,7 @@
   /* Texto */
   --texto: #e8f0f2;
   --texto-2: #93a7b0;
-  --texto-3: #6d8089;
+  --texto-3: #839aa4;
 
   /* Linhas e sinais */
   --linha: color-mix(in srgb, var(--ciano) 14%, transparent);
@@ -39,9 +45,9 @@
   --reticula: color-mix(in srgb, var(--ciano) 4.5%, transparent);
 
   /* Tipo */
-  --display: 'Archivo Variable', system-ui, sans-serif;
-  --corpo: 'Manrope Variable', system-ui, sans-serif;
-  --mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', monospace;
+  --display: "Archivo Variable", system-ui, sans-serif;
+  --corpo: "Manrope Variable", system-ui, sans-serif;
+  --mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", monospace;
 
   /* Ritmo. Escala de 4px, densidade padrao. */
   --s1: 0.25rem;
@@ -81,10 +87,18 @@
 html {
   scroll-behavior: smooth;
   /*
-   * O cabecalho e sticky e tem cerca de 3.5rem. Sem esta reserva a ancora para
-   * com o titulo da secao escondido atras dele.
+   * NAO declare scroll-padding-top aqui.
+   *
+   * A folga do cabecalho ja vem de .secao { scroll-margin-top }. Ter as duas
+   * fazia as reservas se somarem, e isso foi medido produzindo seis defeitos de
+   * uma vez: a secao parava entre 19px e 107px do cabecalho conforme o caso, a
+   * pagina se mexia sozinha 1.2s depois de parar (quando o encaixe religa), o
+   * botao voltar errava 88px, e sem JavaScript a chegada ficava 176px abaixo.
+   *
+   * O padding do scrollport tem ainda um efeito proprio e indesejado: ao focar
+   * um controle do cabecalho sticky pelo teclado, ele empurrava a pagina 460px
+   * para tras. A margem por secao nao faz isso.
    */
-  scroll-padding-top: var(--folga-ancora);
   -webkit-text-size-adjust: 100%;
 
   /*
@@ -94,7 +108,6 @@ html {
    * teclado, gesto e barra de espaco.
    */
   scrollbar-width: none;
-
 }
 
 /*
@@ -146,14 +159,18 @@ body {
  * e desaparecendo antes do rodape para nao competir com o conteudo.
  */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   background-image:
     linear-gradient(var(--reticula) var(--borda), transparent var(--borda)),
-    linear-gradient(90deg, var(--reticula) var(--borda), transparent var(--borda));
+    linear-gradient(
+      90deg,
+      var(--reticula) var(--borda),
+      transparent var(--borda)
+    );
   background-size: 2rem 2rem;
   mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
 }
@@ -314,7 +331,7 @@ ol {
 }
 
 .rotulo::after {
-  content: '';
+  content: "";
   flex: 1;
   height: var(--borda);
   background: linear-gradient(90deg, var(--linha), transparent);
@@ -350,7 +367,9 @@ ol {
   font-size: 0.8125rem;
   color: var(--ciano);
   border-block-end: var(--borda) solid transparent;
-  transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+  transition:
+    border-color var(--rapido) var(--curva),
+    color var(--rapido) var(--curva);
 }
 
 .link-linha:hover {
@@ -379,8 +398,11 @@ ol {
   font-weight: 500;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background var(--rapido) var(--curva), border-color var(--rapido) var(--curva),
-    color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
+  transition:
+    background var(--rapido) var(--curva),
+    border-color var(--rapido) var(--curva),
+    color var(--rapido) var(--curva),
+    transform var(--rapido) var(--curva);
 }
 
 .botao-primario {
@@ -409,48 +431,27 @@ ol {
 /* ------------------------------------------------------ texto corrido - */
 
 /*
- * Justificacao.
+ * Justificacao, so a partir do desktop.
  *
- * Vale para paragrafo de leitura, ou seja, texto de varias linhas com medida
- * suficiente. NAO vale para titulo, rotulo monoespacado, legenda de numero,
- * etiqueta de stack nem qualquer texto de uma ou duas linhas: nesses casos a
- * justificacao so abre buracos entre palavras sem ganho nenhum de leitura.
+ * A regra base nao justifica nada: no celular a coluna de leitura tem cerca de
+ * 21rem, o que deixa poucas palavras por linha, e o espacamento entre elas fica
+ * visivelmente irregular de um paragrafo para o outro, mesmo com hifenizacao
+ * ligada. Numa tela estreita o alinhamento simples le melhor.
  *
- * A hifenizacao vem junto e nao e opcional. Justificar sem hifenizar numa coluna
- * estreita de celular produz os "rios" de espaco em branco que atravessam o
- * paragrafo. O navegador so consegue hifenizar porque a pagina declara o idioma
- * correto em <html lang>, que aqui e pt-BR ou en conforme a rota.
+ * A partir de 48rem, que e o mesmo ponto onde a navegacao de desktop aparece, a
+ * medida ja comporta palavras suficientes por linha e a justificacao passa a
+ * ajudar: as colunas de texto ganham borda direita reta e a leitura fica mais
+ * calma. Ali a hifenizacao entra junto, e nao e opcional, porque sem ela a
+ * justificacao abre os "rios" de espaco em branco que atravessam o paragrafo.
  *
- * text-wrap: pretty continua ligado para evitar linha final orfa.
+ * A hifenizacao so funciona porque a pagina declara o idioma correto em
+ * <html lang>, pt-BR ou en conforme a rota.
+ *
+ * Nada disso vale para titulo, rotulo monoespacado, legenda de numero ou
+ * etiqueta de stack: em texto de uma ou duas linhas a justificacao so abre
+ * buracos, sem ganho nenhum de leitura.
  */
-.hero-descricao,
-.subtitulo-secao,
-.lab-texto p,
-.pilar-texto,
-.card-pitch,
-.card-nota-texto,
-.limite-texto,
-.externo-texto,
-.fluxo-nota,
-.rodape-linha {
-  text-align: justify;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  /*
-   * Segura o caso patologico: uma palavra sozinha numa linha, tipica de coluna
-   * estreita, seria esticada de ponta a ponta. Com a ultima linha alinhada ao
-   * inicio e o limite abaixo, isso nao acontece.
-   */
-  text-align-last: start;
-}
-
-/*
- * Abaixo de 20rem de medida a justificacao perde para o alinhamento simples,
- * mesmo com hifenizacao: sobram poucas palavras por linha e o espacamento fica
- * irregular demais. So aparelhos bem estreitos caem nessa faixa; um celular
- * comum de 390px tem coluna de leitura de cerca de 21rem e continua justificado.
- */
-@media (max-width: 20rem) {
+@media (min-width: 48rem) {
   .hero-descricao,
   .subtitulo-secao,
   .lab-texto p,
@@ -461,12 +462,18 @@ ol {
   .externo-texto,
   .fluxo-nota,
   .rodape-linha {
-    text-align: start;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    /*
+     * Segura o caso patologico: uma palavra sozinha na ultima linha seria
+     * esticada de ponta a ponta da coluna.
+     */
+    text-align-last: start;
   }
 }
 
 /* ------------------------------------------------------------ movimento - */
-
 
 /*
  * O que para sob "reduzir movimento" e o movimento DECORATIVO: a cascata de
@@ -481,6 +488,15 @@ ol {
  * quem tinha a preferencia ligada. Quem decide isso e o navegador.
  */
 @media (prefers-reduced-motion: reduce) {
+  /*
+   * O padrao continua sendo parar tudo: qualquer animacao nova nasce silenciada
+   * sob a preferencia, sem ninguem precisar lembrar disso. As excecoes ficam nos
+   * proprios componentes, declaradas uma a uma com o motivo escrito ao lado, e
+   * vencem esta regra por especificidade de classe.
+   *
+   * Hoje existem duas, ambas no Hero: o ECG e o pulso do kicker. Nenhuma desloca
+   * elemento na tela, que e o que causa desconforto vestibular de verdade.
+   */
   *,
   *::before,
   *::after {
