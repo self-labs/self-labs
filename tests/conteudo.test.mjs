@@ -176,7 +176,7 @@ describe('estatisticas derivadas', () => {
   const stats = JSON.parse(fs.readFileSync(path.join(ROOT, 'src/data/stats.json'), 'utf8'));
 
   test('o arquivo de estatisticas tem todos os campos que a pagina le', () => {
-    for (const campo of ['commits', 'reposPublicos', 'prsExternos', 'inicioOperacao', 'atualizadoEm']) {
+    for (const campo of ['commits', 'repositorios', 'prsExternos', 'inicioOperacao', 'atualizadoEm']) {
       assert.ok(campo in stats, `falta o campo "${campo}" em stats.json`);
     }
   });
@@ -188,7 +188,7 @@ describe('estatisticas derivadas', () => {
 
   test('os numeros sao positivos', () => {
     assert.ok(stats.commits > 0);
-    assert.ok(stats.reposPublicos > 0);
+    assert.ok(stats.repositorios > 0);
     assert.ok(stats.prsExternos >= 0);
   });
 });

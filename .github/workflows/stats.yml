@@ -32,7 +32,16 @@ jobs:
 
       - name: Buscar estatísticas
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # STATS_TOKEN primeiro, e a ordem importa. O GITHUB_TOKEN que o Actions
+          # injeta é um token de instalação com escopo neste repositório apenas:
+          # ele não enxerga repositório privado das outras contas, e com ele a
+          # conta cai de 1397 commits para o punhado que é público.
+          #
+          # STATS_TOKEN precisa ser um PAT clássico com escopo "repo", do dono da
+          # conta. Sem ele o script ainda roda, só que vendo apenas o que é
+          # público, e a guarda de coerência recusa gravar a queda: os números
+          # ficam parados no último valor bom em vez de encolherem sozinhos.
+          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
         # O script nunca falha o job: se a API cair ou o resultado vier
         # incoerente com o anterior, ele mantém o arquivo atual e sai com 0.
         run: node scripts/fetch-stats.mjs
