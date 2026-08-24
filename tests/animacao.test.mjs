@@ -518,3 +518,61 @@ describe('ECG, geometria', () => {
     );
   });
 });
+
+describe('ECG, o resgate por JavaScript sob movimento reduzido', () => {
+  /*
+   * O Chromium zera a duracao de toda animacao declarada em CSS enquanto a
+   * preferencia esta ligada (medido: animation-duration computa 1e-06s), e a
+   * Web Animations API nao sofre esse corte. O script existe so por isso.
+   *
+   * O CSS continua parando a faixa num ponto digno, e essa parada e o que
+   * aparece quando nao ha JavaScript. Uma coisa nao substitui a outra.
+   */
+  test('o script anima pela API, nao por classe que ligue o CSS de volta', () => {
+    assert.match(hero, /\.animate\(/, 'o resgate precisa usar a Web Animations API');
+    assert.match(
+      hero,
+      /matchMedia\('\(prefers-reduced-motion: reduce\)'\)/,
+      'o script precisa consultar a preferencia',
+    );
+  });
+
+  test('o script reaproveita os quadros do CSS em vez de reescreve-los', () => {
+    /*
+     * A forma da onda e calculada no build a partir da geometria do traco.
+     * Reescreve-la no script criaria um segundo lugar para ela divergir, e a
+     * divergencia so apareceria para quem tem a preferencia ligada, que e quem
+     * menos costuma ser testado.
+     */
+    assert.match(hero, /CSSKeyframesRule/, 'os quadros precisam sair da folha de estilo');
+    assert.match(
+      hero,
+      /lerQuadros\(`avanco-\$\{ciclos\}`\)/,
+      'o percurso precisa vir do keyframe correspondente ao --ciclos vigente',
+    );
+  });
+
+  test('o ritmo reduzido e mais lento, e nunca parado', () => {
+    const fator = hero.match(/const LENTO = (\d+)/);
+    assert.ok(fator, 'nao encontrei o fator de desaceleracao');
+    const n = Number(fator[1]);
+    assert.ok(n > 1, 'o fator precisa desacelerar');
+    assert.ok(n <= 4, `fator ${n} deixa a volta longa demais para parecer viva`);
+  });
+
+  test('o CSS mantem a parada como reserva para quem nao tem JavaScript', () => {
+    const bloco = hero.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n {2}\}/);
+    assert.ok(bloco, 'bloco de movimento reduzido sumiu');
+    assert.match(
+      bloco[0],
+      /animation:\s*none/,
+      'sem JavaScript a faixa precisa ficar parada de proposito, e nao no primeiro quadro',
+    );
+  });
+
+  test('mudar de largura remonta a animacao', () => {
+    // O --ciclos muda com a media query, e com ele o percurso. Sem remontar, o
+    // cabecote passaria a correr uma distancia que nao corresponde mais a faixa.
+    assert.match(hero, /addEventListener\(\s*'resize'/, 'falta reagir ao redimensionamento');
+  });
+});

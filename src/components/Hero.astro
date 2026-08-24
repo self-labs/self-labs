@@ -257,6 +257,115 @@ ${QUADROS_AVANCO}`}
   />
 </section>
 
+<script>
+  /**
+   * Mantem o sinal vital vivo para quem pediu menos movimento.
+   *
+   * O Chromium zera a duracao de toda animacao DECLARADA EM CSS enquanto
+   * prefers-reduced-motion esta ligado: medido, animation-duration computa
+   * 1e-06s e a faixa congela no primeiro quadro. A Web Animations API nao sofre
+   * esse corte, o que da a unica saida possivel para continuar mostrando um
+   * batimento sem desrespeitar a intencao de quem ligou a preferencia.
+   *
+   * O acordo e a cadencia: o percurso e o mesmo, o ritmo cai pela metade. A
+   * preferencia existe por causa de deslocamento amplo, parallax e zoom, e nao
+   * por um ponto de 2.4px atravessando um rodape devagar.
+   *
+   * Sem JavaScript nada disso roda e o CSS assume: a faixa fica parada com o
+   * cabecote pousado sobre a linha de base, que ja e uma imagem honesta. Este
+   * script so melhora o que ja funciona.
+   */
+  (() => {
+    const semMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+    const faixa = document.querySelector<HTMLElement>('.ecg');
+    if (!faixa) return;
+
+    const avanco = faixa.querySelector<SVGGElement>('.ecg-avanco');
+    const rastro = faixa.querySelector<SVGGElement>('.ecg-rastro');
+    const cabecote = faixa.querySelector<SVGGElement>('.ecg-cabecote');
+    if (!avanco || !cabecote) return;
+
+    /**
+     * Le os quadros de um @keyframes que ja existe na folha de estilo.
+     *
+     * Reaproveitar e o ponto: a forma da onda e calculada no build a partir da
+     * geometria do traco, e reescreve-la aqui criaria um segundo lugar para ela
+     * divergir. O que o CSS anima e o que este script anima, por construcao.
+     */
+    const lerQuadros = (nome: string): Keyframe[] | null => {
+      for (const folha of document.styleSheets) {
+        let regras: CSSRuleList;
+        try {
+          regras = folha.cssRules;
+        } catch {
+          continue; // folha de outra origem, nao ha o que ler
+        }
+        for (const regra of regras) {
+          if (regra instanceof CSSKeyframesRule && regra.name === nome) {
+            return [...regra.cssRules]
+              .filter((q): q is CSSKeyframeRule => q instanceof CSSKeyframeRule)
+              .map((q) => ({
+                offset: Number.parseFloat(q.keyText) / 100,
+                translate: q.style.translate,
+              }))
+              .sort((a, b) => (a.offset as number) - (b.offset as number));
+          }
+        }
+      }
+      return null;
+    };
+
+    let ativas: Animation[] = [];
+    const desmontar = () => {
+      for (const a of ativas) a.cancel();
+      ativas = [];
+    };
+
+    const montar = () => {
+      desmontar();
+      if (!semMovimento.matches) return; // sem a preferencia, o CSS ja anima
+
+      const estilo = getComputedStyle(faixa);
+      const ciclos = Number.parseInt(estilo.getPropertyValue('--ciclos'), 10) || 2;
+      const batida = (Number.parseFloat(estilo.getPropertyValue('--batida')) || 1.25) * 1000;
+
+      const onda = lerQuadros('onda');
+      const percurso = lerQuadros(`avanco-${ciclos}`);
+      if (!onda || !percurso) return; // folha ausente: fica a parada do CSS
+
+      /* Metade do ritmo. O percurso continua inteiro, so leva o dobro do tempo. */
+      const LENTO = 2;
+      const comum = { iterations: Infinity, easing: 'linear' } as const;
+
+      for (const alvo of [avanco, rastro]) {
+        if (!alvo) continue;
+        ativas.push(
+          alvo.animate(percurso, { ...comum, duration: ciclos * batida * LENTO }),
+        );
+      }
+      ativas.push(cabecote.animate(onda, { ...comum, duration: batida * LENTO }));
+    };
+
+    montar();
+
+    /*
+     * A largura muda o --ciclos, que muda o percurso: sem remontar, o cabecote
+     * passaria a correr uma distancia que nao corresponde mais a faixa.
+     */
+    let pendente = 0;
+    addEventListener(
+      'resize',
+      () => {
+        clearTimeout(pendente);
+        pendente = window.setTimeout(montar, 200);
+      },
+      { passive: true },
+    );
+
+    semMovimento.addEventListener('change', montar);
+  })();
+</script>
+
 <style>
   .hero {
     position: relative;

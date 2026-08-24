@@ -216,7 +216,16 @@ current design removes the shape rather than patching the symptom.
 - **The fade is symmetric.** It was 2.5rem in and 3.5rem out, and the difference
   showed: the dot was born fast and died slow, which reached the owner as "starts
   well, finishes badly".
-- **Reduced motion stops the sweep, it does not slow it down.** Chromium forces
+- **Reduced motion keeps the pulse, at half the pace, and it takes JavaScript.**
+  Chromium zeroes the duration of every CSS-declared animation while the
+  preference is on, but the Web Animations API is not cut: measured, a 4000ms
+  JS animation kept its full duration and advanced 135px in 900ms. So a small
+  script re-drives the ECG through `.animate()` at half cadence, reading the
+  keyframes straight out of the stylesheet so the wave geometry never lives in
+  two places. The travel is unchanged; only the rhythm halves. That is a
+  defensible trade: the preference exists for wide displacement, parallax and
+  zoom, not for a 2.4px dot crossing a footer slowly.
+- **The CSS still parks the band, and that parking is the no-JavaScript path.** Chromium forces
   `animation-duration` to `1e-06s` on every CSS animation while the preference is
   on, so any duration declared inside that media query is discarded before it can
   matter. Measured on the owner's Chrome and reproduced with the preference
