@@ -25,6 +25,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          # O push deste job precisa sair com credencial de PESSOA, e nao com o
+          # GITHUB_TOKEN padrão. O Actions não dispara workflow nenhum para um
+          # evento criado com o próprio GITHUB_TOKEN, que é a proteção contra
+          # loop infinito, e o efeito colateral aqui era grave e silencioso: o
+          # robô commitava os números novos, o deploy não rodava, e o site
+          # seguia mostrando os antigos até alguém empurrar algo à mão.
+          #
+          # Medido em 24/08/2026: o commit ca46e52 atualizou o arquivo e nenhum
+          # deploy foi disparado.
+          #
+          # Sem STATS_TOKEN cai no padrão e volta a não disparar, o que é apenas
+          # o comportamento antigo, não uma regressão nova.
+          token: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - uses: actions/setup-node@v5
         with:

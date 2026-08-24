@@ -104,7 +104,14 @@ These are enforced by `npm test`, which runs in CI before every deploy.
 - months of operation: computed from the oldest public repository to build date.
 
 `.github/workflows/stats.yml` re-reads them every Monday and commits only when a
-value actually changed. That commit triggers the deploy workflow.
+value actually changed, and that commit triggers the deploy workflow.
+
+It only triggers it because the checkout step authenticates with `STATS_TOKEN`.
+Actions fires no workflow for an event created with the default `GITHUB_TOKEN`,
+which is the infinite-loop guard, and the side effect here was silent and severe:
+the bot committed fresh numbers, no deploy ran, and the live site kept serving the
+old ones until somebody pushed by hand. Measured on 2026-08-24, commit ca46e52
+updated the file and triggered nothing.
 
 **The scheduled run needs `STATS_TOKEN`.** The `GITHUB_TOKEN` Actions injects is
 an installation token scoped to this repository only, so it cannot see private
