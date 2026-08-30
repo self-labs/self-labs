@@ -36,6 +36,14 @@ não a lista de commits.
   workflow escreve no repositório.
 - O token da Cloudflare saiu da linha de comando do `curl` de verificação e
   passa por stdin, fora do `argv` visível a outros processos.
+- O portão de versão do deploy passou a isentar `.gitignore` e `CHANGELOG.md`,
+  ao lado dos arquivos que já estavam na lista. Nenhum dos dois altera um byte
+  do que o visitante recebe, e exigir revisão neles fazia o rodapé anunciar uma
+  mudança que o site não teve, justamente o contrário do que o passo protege.
+  Levantamento das vinte e seis execuções do workflow: das nove que falharam,
+  quatro foram este portão, mais do que qualquer outra causa. A isenção não
+  vaza, porque continua bastando um arquivo de código no mesmo commit para a
+  revisão voltar a ser exigida.
 
 ### Security
 

@@ -26,6 +26,9 @@ jobs:
         with:
           # Dois commits: o passo de versao compara este com o anterior.
           fetch-depth: 2
+          # Nada neste workflow escreve no repositorio, entao a credencial nao
+          # precisa ficar gravada no .git/config do runner pelo job inteiro.
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:
@@ -63,7 +66,11 @@ jobs:
           # número, não código. Antes isso passava despercebido porque o commit
           # dele não disparava deploy nenhum. Agora que dispara, sem esta exceção
           # o deploy quebraria neste passo toda segunda.
-          if git diff --name-only HEAD~1 HEAD | grep -qvE '^(\.github/|docs/|README\.md|AGENTS\.md|CLAUDE\.md|src/data/stats\.json|public/stats\.json)'; then
+          # O .gitignore e o CHANGELOG.md entram pelo mesmo motivo, por outro
+          # caminho: nenhum dos dois altera um byte do que o visitante recebe.
+          # Exigir revisão neles faz o rodapé anunciar uma mudança que o site
+          # não teve, que é o contrário do que este passo existe para proteger.
+          if git diff --name-only HEAD~1 HEAD | grep -qvE '^(\.github/|docs/|README\.md|AGENTS\.md|CLAUDE\.md|CHANGELOG\.md|\.gitignore|src/data/stats\.json|public/stats\.json)'; then
             if [ "$atual" = "$anterior" ]; then
               echo "::error::O codigo mudou e a versao continua $atual."
               echo "::error::Suba a revisao no package.json: o rodape do site mostra esse numero."
@@ -90,7 +97,11 @@ jobs:
         run: npm run build
 
       - name: Publicar no Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
+        # Fixada por SHA, e nao por tag: esta acao recebe o token que publica
+        # em producao, e uma tag e mutavel, ou seja, quem controlar o
+        # repositorio dela pode trocar o codigo por baixo sem mudar a
+        # referencia. Atualizar junto com o Dependabot.
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -114,7 +125,9 @@ jobs:
         run: |
           sleep 5
           api="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts/selflabs-site/deployments"
-          resposta=$(curl -sS -H "Authorization: Bearer $CF_API_TOKEN" --max-time 20 "$api")
+          # O cabecalho entra por stdin em vez de argv: argumento de processo
+          # e legivel por qualquer outro processo do runner.
+          resposta=$(curl -sS --max-time 20 -H @- "$api" <<< "Authorization: Bearer $CF_API_TOKEN")
 
           if ! echo "$resposta" | jq -e '.success == true' > /dev/null 2>&1; then
             echo "::error::A API da Cloudflare nao respondeu como esperado:"
