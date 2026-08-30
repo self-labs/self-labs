@@ -1,35 +1,49 @@
-# Dependências
+# self-labs v2026.8.8 - arquivos que nunca entram no repositório
+
+# --- Dependências e artefatos de build ---
 node_modules/
 .pnpm-store/
-
-# Build
 dist/
 .astro/
 .output/
-
-# Wrangler e Cloudflare
 .wrangler/
+
+# --- Ambiente ---
+.env
+.env.*
+!.env.example
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
 
-# Grafo de conhecimento: derivado, regenerável e volumoso
-graphify-out/
-
-# Ambiente
-.env
-.env.*
-!.env.example
-
-# Logs e caches de ferramenta
+# --- Logs ---
 *.log
 npm-debug.log*
+
+# --- Grafo de conhecimento: derivado, regenerável e volumoso ---
+graphify-out/
+
+# --- Dados sensíveis ---
+# Propostas, orçamentos e relatórios gerados a partir do modelo Self-Labs
+# carregam nome de cliente, endereço do local, valores negociados, contato de
+# terceiros e a topologia da rede instalada. Este repositório é PÚBLICO: nada
+# disso pode entrar na história do git, em nenhum formato. Um arquivo que chega
+# ao histórico continua lá depois de apagado, então a regra vem antes do arquivo.
+propostas/
+relatorios/
+
+# --- Testes e cobertura ---
+coverage/
+
+# --- Artefatos de ferramentas e previews ---
 .eslintcache
 .cache/
-coverage/
 .playwright-mcp/
+# Marca copiada ao lado de cada documento pelo new-selflabs-doc.ps1. Derivada de
+# src/assets/brand, regenerável, e nunca versionada duas vezes.
+selflabs-assets/
 
-# Sistema operacional e editor
+# --- Sistema operacional e editores ---
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -38,8 +52,10 @@ desktop.ini
 .vscode/*
 !.vscode/extensions.json
 
-# Anexos e artefatos soltos na raiz
+# --- Anexos soltos na raiz ---
 /*.pdf
 /*.docx
+/*.xls
 /*.xlsx
+/*.csv
 /*.zip
