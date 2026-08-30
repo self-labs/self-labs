@@ -61,6 +61,10 @@ scripts/
   build-brand.mjs   Derives isotipo/wordmark/lockup/favicon from selflabs-source.svg
   fetch-stats.mjs   Reads the GitHub API into src/data/stats.json
   build-og.mjs      Renders og.png, app icons and favicon.ico from the SVGs
+  build-headers.mjs Writes dist/_headers, including a hash based CSP. Runs last,
+                    because it reads the html the build just produced.
+public/
+  .well-known/      security.txt, RFC 9116. Copied to dist by build-headers.mjs
 src/
   assets/brand/     selflabs-source.svg is the CorelDRAW export. Never hand-edit it.
                     The other SVGs here are GENERATED. Edit the script, not the output.
@@ -72,7 +76,7 @@ src/
   i18n/contato.ts   Contact channels. WHATSAPP is empty until a number is set.
   layouts/Base.astro  Head, header, rail, footer
   styles/app.css    Tokens and base. The only global stylesheet.
-tests/              Editorial and structural rules
+tests/              Editorial, structural and header rules
 ```
 
 ## Writing rules, non negotiable
@@ -184,7 +188,7 @@ different every time, and all three came from the same shape of mistake, so the
 current design removes the shape rather than patching the symptom.
 
 - **The trace is still and the head sweeps over it.** An earlier version scrolled
-  the trace *and* ran the dot, so what you saw was the difference between the two
+  the trace _and_ ran the dot, so what you saw was the difference between the two
   speeds. That difference could only ever be a whole multiple of 120 units, and a
   window is any width at all, so on a 1920px monitor the dot died at 79% of the
   band, in fully opaque area, and reappeared on the left out of nowhere.
@@ -245,6 +249,68 @@ current design removes the shape rather than patching the symptom.
 out of the component and recomputes the coverage for every width band. It reads
 the fade percentage from the mask itself rather than repeating it, because a
 number written in two files is a number that will diverge.
+
+## Security headers, and what must never reach a public log
+
+This repository is PUBLIC, and that fact drives everything in this section.
+
+### The headers are generated, never written by hand
+
+`scripts/build-headers.mjs` runs last in the build and writes `dist/_headers`,
+which Workers Static Assets parses and applies to every asset response. It works
+without a worker script; the moment somebody adds a `main` with
+`run_worker_first`, responses produced by that script stop carrying these
+headers, with no warning and no deploy error.
+
+The CSP does not use `unsafe-inline`. It lists the sha256 of every inline
+`<script>` and `<style>` in the built pages, because `inlineStylesheets:
+"always"` puts all the CSS inline and every behaviour script is inline too.
+Those hashes change on any build that touches CSS or JS, which is exactly why
+the file is derived: a stale CSP does not loosen, it BREAKS the page, silently,
+and only in the visitor's browser.
+
+Three findings came out of serving the policy over http and loading it in a real
+browser, and none of them would have been caught by reading it:
+
+- Comments in this project mention the `<style>` tag inside the prose. The
+  extraction started inside a comment and ended at the real `</style>`, hashing
+  a mix of comment and CSS. The `@keyframes` block ended up with no hash and the
+  animation died.
+- `font-src 'self'` refused two families, because Astro embeds part of the woff2
+  as data URIs inside the inline CSS. The page fell back to system fonts with no
+  sign on this side.
+- A generic `style-src` with hashes made Chrome refuse the 36 `style=""`
+  attributes citing `style-src`, not `style-src-attr`. Declaring
+  `style-src-elem` and `style-src-attr`, and no generic `style-src`, fixes it.
+
+`tests/cabecalhos.test.mjs` locks all three, plus the rule that every inline
+block in `dist` has a matching hash.
+
+**HSTS covers the apex only**, deliberately: no `includeSubDomains`, no
+`preload`. This zone carries dozens of subdomains pointing at homelab and VPS
+tunnels, and `includeSubDomains` would order every browser that visits the page
+to demand valid HTTPS on all of them, for a year, from the first visit.
+
+Two more traps worth knowing: a `_headers` outside the root of `dist` is not
+read and gets published as a fetchable asset instead, and an `.assetsignore`
+listing `_headers` (a common copy paste from Pages migration guides) kills the
+file silently. Neither exists here, and neither should.
+
+### Never print a private repository name
+
+`fetch-stats.mjs` runs weekly with a token that sees everything. It used to log
+one line per repository including the private ones, and since Actions logs on a
+public repository are readable by anyone without logging in, that published the
+full inventory: private repository names with exact commit counts, fourteen of
+them in a measured run, three of which appear nowhere on the site.
+
+The page only ever needed the sum. Names of private repositories are masked
+unless `SELFLABS_VERBOSE=1`, which the CI never sets. Fixing the script does not
+erase logs already published: those have to be deleted by hand in the Actions
+interface.
+
+The same rule applies to anything added here later. Aggregate in public, keep
+the detail behind an env var that only exists on the owner's machine.
 
 ## Brand assets
 

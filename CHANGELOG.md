@@ -10,6 +10,8 @@ não a lista de commits.
 
 ## [Unreleased]
 
+## [2026.8.11] - 2026-08-30
+
 ### Added
 
 - Cabeçalhos de segurança em toda resposta, gerados por `scripts/build-headers.mjs`
@@ -174,9 +176,10 @@ não a lista de commits.
   derivados da API do GitHub. Servida pelo Cloudflare Workers Static Assets no
   apex de `selflabs.org`, sem runtime, sem banco e sem endpoint.
 
-[Unreleased]: https://github.com/self-labs/self-labs/compare/692b481...HEAD
-[2026.8.10]: https://github.com/self-labs/self-labs/compare/5a561db...692b481
-[2026.8.9]: https://github.com/self-labs/self-labs/compare/0c9bc7e...5a561db
+[Unreleased]: https://github.com/self-labs/self-labs/compare/HEAD...HEAD
+[2026.8.11]: https://github.com/self-labs/self-labs/compare/3f0315d...HEAD
+[2026.8.10]: https://github.com/self-labs/self-labs/compare/692b481...3f0315d
+[2026.8.9]: https://github.com/self-labs/self-labs/compare/0c9bc7e...692b481
 [2026.8.8]: https://github.com/self-labs/self-labs/compare/a57399e...0c9bc7e
 [2026.8.7]: https://github.com/self-labs/self-labs/compare/7caccba...a57399e
 [2026.8.6]: https://github.com/self-labs/self-labs/compare/68ee685...7caccba

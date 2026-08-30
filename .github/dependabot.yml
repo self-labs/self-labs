@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
+  # Sem esta entrada, fixar as actions por SHA vira congelamento: a referencia
+  # nunca mais se move sozinha, inclusive quando a correcao e de seguranca.
+  # O deploy publica com cloudflare/wrangler-action fixada por SHA justamente
+  # porque ela recebe o token de producao, e e o Dependabot que a mantem viva.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "ci"

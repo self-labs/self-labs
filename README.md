@@ -7,7 +7,7 @@ Cloudflare Workers no apex de `selflabs.org`.
 npm install
 npm run dev      # http://localhost:4321
 npm run verify   # typecheck + testes de conteúdo
-npm run build    # gera marca, números, site e bitmaps
+npm run build    # gera marca, números, site, bitmaps e cabeçalhos
 ```
 
 Toda a documentação do projeto está em [CLAUDE.md](./CLAUDE.md): stack, estrutura

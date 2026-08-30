@@ -272,8 +272,24 @@ async function main() {
       commits += n;
       comCommits += 1;
       if (repo.private) privados += 1;
+
+      /*
+       * Repositorio privado nao tem o nome impresso, e isso nao e preciosismo.
+       *
+       * Este repositorio e publico, entao o log do Actions e legivel por
+       * qualquer pessoa, sem login nenhum. A execucao semanal roda com um PAT
+       * que enxerga tudo, e a linha abaixo publicava, toda segunda-feira, o
+       * inventario completo: o nome de cada repositorio privado e a contagem
+       * exata de commits em cada um. Medido na execucao 32872387227: quatorze
+       * nomes privados, tres deles sem nenhuma relacao com o portfolio.
+       *
+       * O numero da pagina precisa da soma, nunca da lista. Para depurar na
+       * propria maquina, rode com SELFLABS_VERBOSE=1, que o CI nunca define.
+       */
+      const podeNomear = !repo.private || process.env.SELFLABS_VERBOSE === "1";
+      const rotulo = podeNomear ? repo.full_name : "<privado, nome omitido>";
       console.log(
-        `  ${repo.private ? "[priv]" : "[pub] "} ${repo.full_name.padEnd(34)} ${String(n).padStart(5)} commits`,
+        `  ${repo.private ? "[priv]" : "[pub] "} ${rotulo.padEnd(34)} ${String(n).padStart(5)} commits`,
       );
     }
 
@@ -286,7 +302,8 @@ async function main() {
      */
     const comigo = repos.filter((r) => r.created_at);
     const maisAntigo = comigo.reduce(
-      (menor, r) => (new Date(r.created_at) < new Date(menor) ? r.created_at : menor),
+      (menor, r) =>
+        new Date(r.created_at) < new Date(menor) ? r.created_at : menor,
       comigo[0].created_at,
     );
 
@@ -300,7 +317,9 @@ async function main() {
     };
 
     if (!pareceValido(novo, antigo)) {
-      console.warn("\nResultado incoerente com o anterior, mantendo o arquivo atual.");
+      console.warn(
+        "\nResultado incoerente com o anterior, mantendo o arquivo atual.",
+      );
       console.warn(`  antes: ${JSON.stringify(antigo)}`);
       console.warn(`  agora: ${JSON.stringify(novo)}`);
       if (!token) {
@@ -322,7 +341,9 @@ async function main() {
   } catch (erro) {
     console.warn(`\nFalha ao consultar o GitHub: ${erro.message}`);
     if (antigo) {
-      console.warn(`Mantendo os números de ${antigo.atualizadoEm}. O build segue.`);
+      console.warn(
+        `Mantendo os números de ${antigo.atualizadoEm}. O build segue.`,
+      );
     } else {
       // Primeira execucao sem rede: grava um piso honesto para o build ter dados.
       const piso = {

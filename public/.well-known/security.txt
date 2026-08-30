@@ -1,0 +1,10 @@
+# Canal para relatar uma vulnerabilidade em selflabs.org ou em qualquer
+# sistema publicado sob este dominio. Formato RFC 9116.
+#
+# Reporting channel for a vulnerability in selflabs.org or in any system
+# published under this domain.
+
+Contact: mailto:contato@selflabs.org
+Expires: 2027-08-29T00:00:00.000Z
+Preferred-Languages: pt-BR, en
+Canonical: https://selflabs.org/.well-known/security.txt
