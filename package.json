@@ -1,13 +1,13 @@
 {
   "name": "self-labs",
-  "version": "2026.8.9",
+  "version": "2026.8.10",
   "private": true,
   "type": "module",
   "description": "Landing page institucional do Self-Labs",
   "scripts": {
     "brand": "node scripts/build-brand.mjs",
     "dev": "astro dev",
-    "build": "npm run brand && node scripts/fetch-stats.mjs && astro build && node scripts/build-og.mjs && node scripts/build-headers.mjs",
+    "build": "npm run brand && node scripts/fetch-stats.mjs && astro build && node scripts/build-og.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --test \"tests/**/*.test.mjs\"",

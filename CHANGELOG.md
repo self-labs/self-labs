@@ -51,6 +51,17 @@ não a lista de commits.
   VPS, e `includeSubDomains` ordenaria ao navegador exigir HTTPS válido em todos
   eles por um ano a partir da primeira visita à página.
 
+## [2026.8.10] - 2026-08-30
+
+### Fixed
+
+- O passo de build do deploy voltou a rodar. A revisão anterior levou junto, sem
+  querer, uma alteração que já estava na árvore de trabalho: o script `build` do
+  `package.json` passou a chamar `scripts/build-headers.mjs`, que ainda não está
+  versionado. No CI o arquivo não existe, e o build morria com `MODULE_NOT_FOUND`
+  depois de já ter gerado todos os bitmaps. A linha voltou ao que era, e o passo
+  de headers entra junto com o próprio script, no commit dele.
+
 ## [2026.8.9] - 2026-08-30
 
 ### Added
@@ -155,7 +166,8 @@ não a lista de commits.
   derivados da API do GitHub. Servida pelo Cloudflare Workers Static Assets no
   apex de `selflabs.org`, sem runtime, sem banco e sem endpoint.
 
-[Unreleased]: https://github.com/self-labs/self-labs/compare/5a561db...HEAD
+[Unreleased]: https://github.com/self-labs/self-labs/compare/692b481...HEAD
+[2026.8.10]: https://github.com/self-labs/self-labs/compare/5a561db...692b481
 [2026.8.9]: https://github.com/self-labs/self-labs/compare/0c9bc7e...5a561db
 [2026.8.8]: https://github.com/self-labs/self-labs/compare/a57399e...0c9bc7e
 [2026.8.7]: https://github.com/self-labs/self-labs/compare/7caccba...a57399e
