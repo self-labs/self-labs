@@ -24,7 +24,7 @@
     "@fontsource-variable/manrope": "^5.2.5",
     "@resvg/resvg-js": "^2.6.2",
     "sharp": "^0.34.3",
-    "typescript": "^5.9.2",
+    "typescript": "^7.0.2",
     "wrangler": "^4.30.0"
   },
   "engines": {
