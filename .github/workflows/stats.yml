@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # O push deste job precisa sair com credencial de PESSOA, e nao com o
           # GITHUB_TOKEN padrão. O Actions não dispara workflow nenhum para um
