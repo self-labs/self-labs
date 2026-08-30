@@ -130,6 +130,36 @@ ${interno}
 }
 
 /**
+ * Lockup do cabecalho dos e-mails transacionais, 440px de largura.
+ *
+ * Fundo solido, nunca transparente. O Outlook compoe PNG com alfa sobre branco,
+ * e o wordmark ciano sobre branco mede 1.45:1: some. Gravando o petroleo dentro
+ * do proprio bitmap a peca sobrevive a qualquer fundo que o cliente aplique.
+ *
+ * 440 para uma coluna de 600: cabe com folga e ainda entrega 2x de densidade na
+ * largura de 220 que o html declara, que e o que salva a marca em tela retina.
+ *
+ * Isto e reforco, nao muleta: o cabecalho tambem escreve SELF-LABS como texto
+ * vivo, porque cliente de e-mail bloqueia imagem por padrao e um cabecalho que
+ * so tem logo aparece como faixa vazia.
+ */
+function lockupEmail() {
+  const { interno, minX, minY, w, h } = corpoDe("lockup.svg");
+  const largura = 440;
+  const larguraAlvo = 340;
+  const escala = larguraAlvo / w;
+  const respiro = 28;
+  const altura = Math.round(h * escala + respiro * 2);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${largura}" height="${altura}" viewBox="0 0 ${largura} ${altura}">
+  <rect width="${largura}" height="${altura}" fill="${PETROLEO}"/>
+  <g transform="${encaixar({ x: (largura - larguraAlvo) / 2, y: respiro, escala, minX, minY })}">
+${interno}
+  </g>
+</svg>`;
+}
+
+/**
  * Empacota um PNG dentro de um container ICO.
  *
  * O formato aceita PNG embutido desde o Vista, entao nao ha bitmap a converter:
@@ -199,6 +229,15 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toBuffer();
   gravar("icon-maskable-512.png", maskable);
+
+  // flatten remove o canal alfa que o resvg sempre entrega. O rect ja cobre a
+  // peca inteira, entao nenhum pixel e transparente de verdade, mas um PNG32
+  // ainda convida o Outlook a recompor a imagem sobre o proprio fundo dele.
+  const lockup = await sharp(renderizar(lockupEmail(), 440))
+    .flatten({ background: PETROLEO })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  gravar("email-lockup.png", lockup);
 
   // O favicon.svg e o manifest sao estaticos: copiados de public/ para dist/.
   if (fs.existsSync(DIST_DIR)) {
