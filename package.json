@@ -15,7 +15,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "astro": "^7.2.4"
+    "astro": "^7.2.9"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
@@ -23,9 +23,9 @@
     "@fontsource-variable/jetbrains-mono": "^5.2.5",
     "@fontsource-variable/manrope": "^5.2.5",
     "@resvg/resvg-js": "^2.6.2",
-    "sharp": "^0.34.3",
+    "sharp": "^0.35.4",
     "typescript": "^5.9.2",
-    "wrangler": "^4.30.0"
+    "wrangler": "^4.127.0"
   },
   "engines": {
     "node": ">=22"
