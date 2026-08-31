@@ -29,7 +29,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-import { blocosEmbutidos, hashCsp, montarCsp } from '../scripts/build-headers.mjs';
+import { blocosEmbutidos, hashCsp, montarCsp, rotaDe } from '../scripts/build-headers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -67,6 +67,19 @@ describe('extracao dos blocos embutidos', () => {
     const esperado = crypto.createHash('sha256').update(conteudo, 'utf8').digest('base64');
 
     assert.equal(hashCsp(conteudo), `'sha256-${esperado}'`);
+  });
+});
+
+describe('rotas derivadas do dist', () => {
+  const raiz = path.join(ROOT, 'dist');
+
+  test('index vira a raiz e uma pagina em subpasta vira a pasta', () => {
+    assert.equal(rotaDe(path.join(raiz, 'index.html'), raiz), '/');
+    assert.equal(rotaDe(path.join(raiz, 'en', 'index.html'), raiz), '/en/');
+  });
+
+  test('uma pagina que nao se chama index mantem o nome, sem a extensao', () => {
+    assert.equal(rotaDe(path.join(raiz, 'sobre.html'), raiz), '/sobre');
   });
 });
 
@@ -143,6 +156,47 @@ describe('o arquivo publicado, quando ha um dist', () => {
         }
       }
     }
+  });
+
+  test('toda rota HTML carrega no-transform', { skip: !existe }, () => {
+    // Sem no-transform a Cloudflare injeta o script do JavaScript Detections
+    // depois que o Worker respondeu. Ele nunca tera hash aqui, porque carrega o
+    // ray id e um timestamp, e a CSP passa a recusar um bloco em toda visita.
+    // Medido em producao antes desta linha existir: um "Refused to execute
+    // inline script" nas duas rotas.
+    const headers = fs.readFileSync(arquivo, 'utf8').split('\n');
+    const dist = path.join(ROOT, 'dist');
+
+    const paginas = fs
+      .readdirSync(dist, { recursive: true })
+      .filter((nome) => String(nome).endsWith('.html'));
+
+    assert.ok(paginas.length > 0, 'nenhuma pagina em dist/');
+
+    for (const pagina of paginas) {
+      const rota = rotaDe(path.join(dist, String(pagina)), dist);
+      const i = headers.findIndex((linha) => linha === rota);
+
+      assert.ok(i >= 0, `a rota ${rota} nao tem bloco proprio no _headers`);
+      assert.match(
+        headers[i + 1],
+        /Cache-Control:.*\bno-transform\b/,
+        `${rota}: sem no-transform, o JSD volta a ser injetado sem hash`,
+      );
+      // O cache padrao dos assets estaticos precisa sobreviver ao acrescimo.
+      assert.match(headers[i + 1], /must-revalidate/, `${rota}: perdeu o must-revalidate`);
+    }
+  });
+
+  test('os assets nao levam no-transform junto', { skip: !existe }, () => {
+    // O no-transform resolve a CSP das paginas. Espalhar para os assets so
+    // desligaria otimizacao onde ela nao atrapalha ninguem.
+    const headers = fs.readFileSync(arquivo, 'utf8').split('\n');
+    const i = headers.findIndex((linha) => linha === '/_assets/*');
+
+    assert.ok(i >= 0, 'o bloco /_assets/* sumiu');
+    assert.match(headers[i + 1], /immutable/);
+    assert.doesNotMatch(headers[i + 1], /no-transform/);
   });
 
   test('o security.txt acompanha o build', { skip: !existe }, () => {

@@ -86,6 +86,21 @@ export function blocosEmbutidos(html, tag) {
   return blocos;
 }
 
+/**
+ * Converte o caminho de uma pagina construida na rota que o _headers casa.
+ *
+ *   dist/index.html    -> /
+ *   dist/en/index.html -> /en/
+ *
+ * Derivar do dist em vez de escrever "/" e "/en/" a mao: uma terceira rota
+ * entraria em silencio sem o cabecalho, e a falha so apareceria no console de
+ * quem visita, que e onde ninguem olha.
+ */
+export function rotaDe(arquivo, raiz) {
+  const relativo = path.relative(raiz, arquivo).split(path.sep).join("/");
+  return `/${relativo.replace(/(^|\/)index\.html$/, "$1").replace(/\.html$/, "")}`;
+}
+
 /** sha256 em base64, no formato que a CSP espera. */
 export function hashCsp(conteudo) {
   return `'sha256-${crypto.createHash("sha256").update(conteudo, "utf8").digest("base64")}'`;
@@ -167,6 +182,7 @@ function main() {
   }
 
   const csp = montarCsp([...scripts].sort(), [...estilos].sort());
+  const rotasHtml = arquivos.map((arquivo) => rotaDe(arquivo, DIST_DIR)).sort();
 
   /*
    * O parser de _headers corta em 2.000 caracteres por linha, contando a
@@ -209,6 +225,33 @@ function main() {
   Cross-Origin-Resource-Policy: same-origin
   X-Frame-Options: DENY
 
+# O no-transform abaixo existe por causa da CSP, nao por causa de cache.
+#
+# A zona roda com Bot Fight Mode, e no plano gratuito isso liga o JavaScript
+# Detections da Cloudflare sem opcao de desligar so ele. O JSD injeta um script
+# embutido em TODA resposta HTML, depois que o Worker ja respondeu, entao o hash
+# dele nao existe no momento em que este arquivo e gerado. Resultado medido em
+# producao: um bloco sem hash nas duas rotas e um "Refused to execute inline
+# script" no console de cada visitante.
+#
+# Corrigir por hash e impossivel, porque o script carrega o ray id e um
+# timestamp e muda a cada requisicao. A saida recomendada pela Cloudflare e
+# nonce, que exige um valor novo por resposta e portanto um Worker: e ao montar
+# uma Response no Worker para inserir o nonce, a resposta passa a ser "gerada
+# pelo codigo do Worker" e PERDE todos os cabecalhos deste arquivo. O conserto
+# destruiria o que ele conserta.
+#
+# A documentacao do JSD diz que a injecao nao acontece quando a resposta traz
+# Cache-Control: no-transform. E o unico caminho que cabe aqui dentro, sem
+# Worker e sem plano pago. O campo js_detection.passed passa de false para
+# missing, o que nao muda nada: nenhuma regra de WAF usa esse campo.
+#
+# Vale so para as rotas HTML. Os assets seguem logo abaixo com o cache proprio
+# deles, sem no-transform, porque ali a transformacao nao atrapalha ninguem.
+${rotasHtml
+  .map((rota) => `${rota}\n  Cache-Control: public, max-age=0, must-revalidate, no-transform`)
+  .join("\n")}
+
 # Fontes e bitmaps carregam hash no nome ou nao mudam: cache longo e imutavel.
 /_assets/*
   Cache-Control: public, max-age=31536000, immutable
@@ -226,6 +269,7 @@ function main() {
   console.log(
     `  CSP com ${scripts.size} hash(es) de script e ${estilos.size} de estilo, em ${arquivos.length} pagina(s)`,
   );
+  console.log(`  no-transform em ${rotasHtml.join(", ")}`);
 
   copiarWellKnown();
 }

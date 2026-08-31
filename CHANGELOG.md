@@ -10,6 +10,36 @@ não a lista de commits.
 
 ## [Unreleased]
 
+## [2026.8.12] - 2026-08-31
+
+### Fixed
+
+- A Content-Security-Policy parou de recusar um script em toda visita. A zona
+  roda com Bot Fight Mode, e no plano gratuito isso liga o JavaScript Detections
+  da Cloudflare sem permitir desligar apenas ele. O JSD injeta um script embutido
+  em toda resposta HTML **depois** que o Worker respondeu, então o hash dele não
+  existe quando o `_headers` é gerado. Medido em produção nas duas rotas: onze
+  blocos embutidos, um deles sem hash, e um `Refused to execute inline script` no
+  console de cada visitante. As páginas do site nunca foram afetadas, porque os
+  sete scripts do projeto têm hash e executam.
+
+  Corrigir por hash é impossível: o script carrega o ray id e um timestamp, e
+  muda a cada requisição. A saída que a Cloudflare recomenda é nonce, que exige
+  valor novo por resposta e portanto um Worker, e aí esbarra numa circularidade:
+  montar uma `Response` no Worker para inserir o nonce faz a resposta passar a
+  ser gerada pelo código do Worker, e ela perde todos os cabeçalhos deste
+  arquivo. O conserto destruiria o que conserta. Snippets resolveriam, mas
+  exigem plano pago, e as Transform Rules não têm gerador de valor aleatório:
+  derivar o nonce do ray id o torna previsível, o que é `unsafe-inline` com
+  passos a mais.
+
+  A saída foi `Cache-Control: no-transform` nas rotas HTML, que a documentação
+  do JSD nomeia como a condição que impede a injeção. Cabe inteiro no `_headers`
+  que já existe, sem Worker e sem mudar de plano. O campo `js_detection.passed`
+  passa de `false` para `missing`, o que não altera nada, porque nenhuma regra de
+  WAF usa esse campo. As rotas saem do `dist`, nunca escritas à mão, e os assets
+  seguem sem `no-transform`, onde a transformação não atrapalha.
+
 ## [2026.8.11] - 2026-08-30
 
 ### Added
@@ -177,7 +207,8 @@ não a lista de commits.
   apex de `selflabs.org`, sem runtime, sem banco e sem endpoint.
 
 [Unreleased]: https://github.com/self-labs/self-labs/compare/HEAD...HEAD
-[2026.8.11]: https://github.com/self-labs/self-labs/compare/3f0315d...HEAD
+[2026.8.12]: https://github.com/self-labs/self-labs/compare/d9d8483...HEAD
+[2026.8.11]: https://github.com/self-labs/self-labs/compare/3f0315d...d9d8483
 [2026.8.10]: https://github.com/self-labs/self-labs/compare/692b481...3f0315d
 [2026.8.9]: https://github.com/self-labs/self-labs/compare/0c9bc7e...692b481
 [2026.8.8]: https://github.com/self-labs/self-labs/compare/a57399e...0c9bc7e
