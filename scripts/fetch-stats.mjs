@@ -53,8 +53,10 @@ const PROPRIAS = new Set([
  *
  * O Blockstream nao aperta o botao de merge: pega a mudanca, aplica na branch
  * interna deles e fecha o PR original. Para a API isso e "closed", identico a um
- * PR recusado, entao a busca por is:merged acha so o 260 e os outros quatro
- * somem da conta sem avisar.
+ * PR recusado, entao a busca por is:merged acha so o 260 e os outros cinco
+ * somem da conta sem avisar. Antes de incluir um PR aqui, conferir que o commit
+ * dele esta no master do Blockstream/Jade: fechado sem merge tambem e o estado
+ * de um PR recusado.
  *
  * Cada entrada e conferida na API antes de somar: se um dia o PR aparecer como
  * merged de verdade, a busca ja o encontra e esta lista para de conta-lo, entao
@@ -65,6 +67,7 @@ const ACEITOS_SEM_MERGE = [
   "Blockstream/Jade#270",
   "Blockstream/Jade#271",
   "Blockstream/Jade#307",
+  "Blockstream/Jade#335",
 ];
 
 const API = "https://api.github.com";
