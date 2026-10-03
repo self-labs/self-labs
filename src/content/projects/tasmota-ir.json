@@ -1,0 +1,29 @@
+{
+  "order": 19,
+  "featured": false,
+  "category": "aberto",
+  "status": "ativo",
+  "designator": "Q13",
+  "repo": "https://github.com/self-labs/tasmota-ir",
+  "closed": false,
+  "stack": [
+    "Python",
+    "Home Assistant (integração custom)",
+    "Config subentries",
+    "MQTT",
+    "Tasmota IRremoteESP8266",
+    "HACS",
+    "pytest com o harness do Home Assistant",
+    "GitHub Actions (hassfest e HACS)"
+  ],
+  "pt": {
+    "name": "Tasmota IR",
+    "pitch": "Transforma qualquer placa Tasmota com emissor infravermelho em controle remoto de verdade dentro do Home Assistant. As teclas são aprendidas pela interface, e o aparelho vira ar-condicionado com modo, temperatura e aleta, TV com volume e fontes, ventilador, luz ou cortina, sem input_text, sem script e sem automação de cola. Para quem tem aparelho de controle IR e quer automatizar sem trocar o aparelho.",
+    "note": "O emissor é propriedade do aparelho, definido uma vez e testado no momento da escolha, porque um aparelho no emissor errado falha em silêncio completo: o comando é aceito, a placa responde Done e o sinal sai por um LED apontado para outro lugar. O limite estava no próprio firmware: a forma crua do IRSend não aceitava canal, então todo código aprendido como raw saía pelo emissor 1. A correção foi para o Tasmota (arendst/Tasmota#25062, aceita em setembro de 2026), e a integração pergunta à placa na primeira vez: Done fica registrado, e Wrong Protocol, que é o que um firmware sem essa mudança responde sem enviar nada, faz voltar à forma antiga no emissor 1 com aviso no log. Os testes rodam contra o próprio Home Assistant em todo push, ao lado do hassfest e da validação do HACS."
+  },
+  "en": {
+    "name": "Tasmota IR",
+    "pitch": "Turns any Tasmota board with an infrared emitter into a real remote inside Home Assistant. Keys are learned from the interface, and the appliance becomes an air conditioner with mode, temperature and vane, a TV with volume and sources, a fan, a light or a cover, with no input_text, no script and no glue automation. For anyone with an IR controlled appliance who wants to automate it without replacing it.",
+    "note": "The emitter belongs to the appliance, set once and tested the moment it is chosen, because an appliance on the wrong emitter fails in complete silence: the command is accepted, the board answers Done, and the signal leaves through an LED aimed somewhere else. The limit sat in the firmware itself: the raw form of IRSend took no channel, so every code learned as raw left through emitter 1. The fix went into Tasmota (arendst/Tasmota#25062, merged in September 2026), and the integration asks the board the first time: Done is remembered, while Wrong Protocol, which is what a firmware without that change answers while sending nothing, falls back to the old form on emitter 1 with a warning in the log. Tests run against Home Assistant itself on every push, next to hassfest and the HACS validation."
+  }
+}

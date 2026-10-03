@@ -10,6 +10,35 @@ não a lista de commits.
 
 ## [Unreleased]
 
+## [2026.10.1] - 2026-10-03
+
+### Added
+
+- Três projetos novos na vitrine, todos de código aberto: **Tasmota IR**
+  (integração do Home Assistant que aprende e envia infravermelho por qualquer
+  placa Tasmota), **Tasmota para KinCony** (gravador pelo navegador dos builds
+  do Tasmota para as placas AG8 e KC868-A16v3) e **Custom Branding** (marca
+  própria no Home Assistant, da aba à tela de login). Os dois primeiros trazem
+  na nota de campo as correções que viraram PR aceito no Tasmota oficial. A
+  vitrine passa de 20 para 23 projetos; Origo e ai-memory, que são projetos de
+  outras pessoas, continuam no fim da lista.
+
+### Changed
+
+- A descrição da página, em português e em inglês, cita o novo total de
+  projetos. O `CLAUDE.md` deixou de escrever o total por extenso, pelo mesmo
+  motivo que o teste de contagens existe: número escrito à mão vira mentira
+  sozinho.
+
+### Fixed
+
+- O contador de PRs aceitos fora de casa voltou a contar o
+  [Blockstream/Jade#335](https://github.com/Blockstream/Jade/pull/335), a opção de
+  girar a imagem da câmera em 180 graus. A Blockstream aplicou a mudança na
+  branch interna e fechou o PR sem merge, como faz com os outros, e o commit
+  `9c097297` está no `master` deles. Sem a entrada na lista de aceitos sem merge,
+  a barra de prova e os badges do perfil mostravam 19 em vez de 20.
+
 ## [2026.8.12] - 2026-08-31
 
 ### Fixed
@@ -207,7 +236,8 @@ não a lista de commits.
   apex de `selflabs.org`, sem runtime, sem banco e sem endpoint.
 
 [Unreleased]: https://github.com/self-labs/self-labs/compare/HEAD...HEAD
-[2026.8.12]: https://github.com/self-labs/self-labs/compare/d9d8483...HEAD
+[2026.10.1]: https://github.com/self-labs/self-labs/compare/d95e7ed...HEAD
+[2026.8.12]: https://github.com/self-labs/self-labs/compare/d9d8483...d95e7ed
 [2026.8.11]: https://github.com/self-labs/self-labs/compare/3f0315d...d9d8483
 [2026.8.10]: https://github.com/self-labs/self-labs/compare/692b481...3f0315d
 [2026.8.9]: https://github.com/self-labs/self-labs/compare/0c9bc7e...692b481

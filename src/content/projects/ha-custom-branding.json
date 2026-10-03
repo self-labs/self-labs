@@ -1,0 +1,29 @@
+{
+  "order": 21,
+  "featured": false,
+  "category": "aberto",
+  "status": "ativo",
+  "designator": "Q15",
+  "repo": "https://github.com/self-labs/ha-custom-branding",
+  "closed": false,
+  "stack": [
+    "Python",
+    "Home Assistant (integração custom)",
+    "aiohttp",
+    "Config flow",
+    "ES module",
+    "HACS",
+    "hassfest",
+    "GitHub Actions"
+  ],
+  "pt": {
+    "name": "Custom Branding",
+    "pitch": "Coloca a marca própria num Home Assistant pela interface: ícone da aba, tela de login, logo de carregamento e ícone do app instalado, e a troca sobrevive a toda atualização de imagem. Para quem entrega Home Assistant a um cliente ou à família e quer que a tela de entrada mostre o nome da casa, não o logo do Home Assistant.",
+    "note": "O Home Assistant não tem opção de marca própria, e as saídas de sempre falham: arquivo trocado dentro do container some no próximo update, e um módulo JS nunca carrega em /auth/authorize, então a tela de login continua com o logo original. Aqui cada arquivo ganha uma rota estática própria. O aiohttp resolve pelo prefixo mais longo, então /static/icons/favicon.ico vence o recurso /static do frontend em qualquer ordem de registro, e a tela de login recebe o ícone novo sem nada ser alterado. Registrar o diretório inteiro seria o erro óbvio: sombrearia a subárvore e daria 404 em todo arquivo não enviado. O único caminho que mexe dentro do container, o título das telas de login, vem desligado, faz backup, reescreve também os gêmeos .gz e .br que o aiohttp serve primeiro e se reaplica a partir da cópia original a cada início."
+  },
+  "en": {
+    "name": "Custom Branding",
+    "pitch": "Puts your own brand on a Home Assistant install from the interface: browser tab icon, login screen, loading logo and installed app icon, and the change survives every image update. For anyone handing Home Assistant to a client or to the family who wants the entry screen to show the name of the house, not the Home Assistant logo.",
+    "note": "Home Assistant has no white label option, and the usual workarounds fall short: a file replaced inside the container is gone on the next update, and a JS module is never loaded on /auth/authorize, so the login screen keeps the original logo. Here every file gets a static route of its own. aiohttp resolves by longest matching prefix, so /static/icons/favicon.ico beats the frontend's /static resource whatever the registration order, and the login screen gets the new icon with nothing patched. Registering the whole directory would be the obvious mistake: it shadows the subtree and 404s every file not shipped. The one path that does touch the container, the login page titles, is off by default, takes a backup, also rewrites the .gz and .br twins aiohttp serves first, and reapplies itself from the pristine copy on every start."
+  }
+}

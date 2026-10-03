@@ -1,0 +1,30 @@
+{
+  "order": 20,
+  "featured": false,
+  "category": "firmware",
+  "status": "ativo",
+  "designator": "Q14",
+  "link": "https://self-labs.github.io/tasmota-kincony/",
+  "repo": "https://github.com/self-labs/tasmota-kincony",
+  "closed": false,
+  "stack": [
+    "Tasmota (fork, PlatformIO)",
+    "ESP32-S3",
+    "ESP Web Tools",
+    "Improv Serial",
+    "W5500 Ethernet",
+    "PCF8574",
+    "GitHub Actions",
+    "GitHub Pages"
+  ],
+  "pt": {
+    "name": "Tasmota para KinCony",
+    "pitch": "Grava pelo navegador o Tasmota montado para as placas KinCony AG8 e KC868-A16v3: abre a página no Chrome ou no Edge, liga a placa no USB-C e clica em Instalar, sem Python, sem esptool e sem PlatformIO. Existe porque os binários oficiais não servem a essas placas: na AG8 ou o IR não escolhe entre os oito emissores ou a Ethernet some, e a A16v3 sobe sem enxergar os 16 relés.",
+    "note": "Os relés e as entradas da A16v3 ficam atrás de expansores PCF8574, e USE_PCF8574 vem desligado em todo build oficial. Na AG8, o preset oficial com o driver IR completo corta 97 recursos para caber num ESP32 de 4 MB, SPI entre eles, e junto vai a Ethernet W5500. Os builds saem de um fork do Tasmota, e a página serve os binários do próprio site, porque o ESP Web Tools baixa com fetch() e o download de release do GitHub não manda cabeçalho CORS. Uma placa que já roda um desses builds é reconhecida pelo nome que anuncia via Improv e recebe Atualizar em vez de Instalar, mantendo a configuração, o que foi testado em placa real antes de ser escrito. A falha mais traiçoeira virou correção no Tasmota oficial (arendst/Tasmota#25047): sem host USB no boot, o console caía na UART0, que no ESP32-S3 são os GPIO43 e 44, exatamente o MOSI e o MISO da W5500. A Ethernet só subia com um cabo USB ligado."
+  },
+  "en": {
+    "name": "Tasmota for KinCony",
+    "pitch": "Flashes the Tasmota builds made for the KinCony AG8 and KC868-A16v3 straight from the browser: open the page in Chrome or Edge, plug the board in by USB-C and click Install, with no Python, no esptool and no PlatformIO. It exists because the official binaries do not fit these boards: on the AG8 either the IR cannot pick among the eight emitters or the Ethernet is gone, and the A16v3 boots with none of its 16 relays reachable.",
+    "note": "The A16v3 keeps its relays and inputs behind PCF8574 expanders, and USE_PCF8574 is off in every official build. On the AG8, the official preset with the full IR driver drops 97 features to fit a 4 MB ESP32, SPI among them, and the W5500 Ethernet goes with it. The builds come from a Tasmota fork, and the page serves the binaries from its own site, because ESP Web Tools downloads with fetch() and GitHub release downloads send no CORS headers. A board already running one of these builds is recognised by the name it announces over Improv and is offered Update instead of Install, keeping its settings, which was tested on a real board before it was written down. The nastiest failure became a fix in official Tasmota (arendst/Tasmota#25047): with no USB host at boot, the console fell back to UART0, which on the ESP32-S3 is GPIO43 and 44, exactly the W5500's MOSI and MISO. The Ethernet only came up with a USB cable plugged in."
+  }
+}

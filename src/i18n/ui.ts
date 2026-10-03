@@ -28,7 +28,7 @@ export const ui = {
     meta: {
       titulo: "Self-Labs: Laboratório de engenharia de Gustavo Cateim",
       descricao:
-        "Firmware, sistemas web e infraestrutura que rodam em servidor próprio, com deploy por webhook e chave privada fora do servidor. Portfólio de 20 projetos, com o que quebrou em produção documentado.",
+        "Firmware, sistemas web e infraestrutura que rodam em servidor próprio, com deploy por webhook e chave privada fora do servidor. Portfólio de 23 projetos, com o que quebrou em produção documentado.",
       idioma: "pt-BR",
       trocarIdioma: "English",
       trocarIdiomaLabel: "Ver esta página em inglês",
@@ -323,7 +323,7 @@ export const ui = {
     meta: {
       titulo: "Self-Labs: The engineering lab of Gustavo Cateim",
       descricao:
-        "Firmware, web systems and infrastructure running on my own servers, deployed by webhook, with the private key kept off the box. A portfolio of 20 projects, including what broke in production.",
+        "Firmware, web systems and infrastructure running on my own servers, deployed by webhook, with the private key kept off the box. A portfolio of 23 projects, including what broke in production.",
       idioma: "en",
       trocarIdioma: "Português",
       trocarIdiomaLabel: "View this page in Portuguese",
