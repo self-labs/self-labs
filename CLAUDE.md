@@ -9,8 +9,18 @@ A static, bilingual, single-page site presenting Gustavo Cateim's engineering
 portfolio: one card per project, five engineering principles drawn from the code
 itself, and four proof numbers pulled live from the GitHub API.
 
-Two routes only: `/` (Portuguese) and `/en/` (English). Same page, same section
-order, different locale.
+Two routes for the landing: `/` (Portuguese) and `/en/` (English). Same page,
+same section order, different locale.
+
+Plus the privacy policy, `/privacidade` and `/en/privacy`, built by
+`components/Privacidade.astro` with its copy in `i18n/ui.ts`. It exists because
+Google's OAuth consent screen only publishes an app (the owner's Google Drive
+sync) with a home page and a privacy policy on a domain he owns. Every sentence
+in it describes what the site actually does: if a cookie, analytics or a form is
+ever added, that text changes in the same commit. `Base.astro` takes
+`pagina="privacidade"` to swap title, description, canonical and the language
+switch, drop the rail (its vias index sections that page does not have) and
+point the nav at the landing's sections instead.
 
 ## Stack
 

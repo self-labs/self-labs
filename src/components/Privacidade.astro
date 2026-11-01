@@ -1,0 +1,104 @@
+---
+/**
+ * Politica de privacidade, montada uma vez para os dois idiomas, como a landing.
+ *
+ * O texto inteiro mora em i18n/ui.ts. Aqui fica so a forma: um rotulo, o titulo,
+ * uma secao curta por assunto e os links de cada uma logo abaixo do paragrafo,
+ * para quem precisa conferir a politica de um terceiro nao ter de procurar.
+ */
+import Base from '../layouts/Base.astro';
+import { ui, rota, type Locale } from '../i18n/ui';
+import { EMAIL } from '../i18n/contato';
+import { version } from '../../package.json';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = ui[locale].privacidade;
+---
+
+<Base locale={locale} versao={version} pagina="privacidade">
+  <section class="secao">
+    <div class="casca">
+      <article class="privacidade">
+        <p class="rotulo"><b>00</b> {t.rotulo}</p>
+        <h1 class="titulo-secao">{t.h1}</h1>
+        <p class="privacidade-data">{t.atualizada}</p>
+
+        {
+          t.secoes.map((s) => (
+            <section class="privacidade-bloco">
+              <h2 class="privacidade-titulo">{s.titulo}</h2>
+              {s.paragrafos.map((p) => (
+                <p class="privacidade-texto">{p}</p>
+              ))}
+              {'links' in s && (
+                <ul class="privacidade-links">
+                  {s.links.map((l) => (
+                    <li>
+                      <a class="link-linha" href={l.href} rel="noopener">
+                        {l.rotulo}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))
+        }
+
+        <ul class="privacidade-links privacidade-fim">
+          <li><a class="link-linha" href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+          <li><a class="link-linha" href={rota(locale)}>{t.voltar}</a></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .privacidade {
+    max-width: 62ch;
+  }
+
+  .privacidade-data {
+    margin-block-start: var(--s4);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--texto-3);
+  }
+
+  .privacidade-bloco {
+    margin-block-start: var(--s7);
+  }
+
+  .privacidade-titulo {
+    font-size: 1.25rem;
+    font-stretch: 105%;
+    text-transform: uppercase;
+  }
+
+  .privacidade-texto {
+    margin-block-start: var(--s4);
+    color: var(--texto-2);
+    font-size: 1.0625rem;
+  }
+
+  .privacidade-links {
+    display: grid;
+    gap: var(--s2);
+    margin-block-start: var(--s4);
+  }
+
+  .privacidade-links a {
+    min-height: 2.25rem;
+  }
+
+  .privacidade-fim {
+    margin-block-start: var(--s8);
+    padding-block-start: var(--s5);
+    border-block-start: var(--borda) solid var(--linha);
+  }
+</style>

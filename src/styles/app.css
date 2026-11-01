@@ -461,6 +461,7 @@ ol {
   .limite-texto,
   .externo-texto,
   .fluxo-nota,
+  .privacidade-texto,
   .rodape-linha {
     text-align: justify;
     hyphens: auto;

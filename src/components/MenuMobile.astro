@@ -18,9 +18,19 @@ import { ui, type Locale } from '../i18n/ui';
 
 interface Props {
   locale: Locale;
+  /**
+   * Fora da landing as secoes nao existem na pagina, entao cada link leva o
+   * caminho da landing na frente ("/#lab"). Sem o "#" no inicio, o script abaixo
+   * nao intercepta o clique e o navegador simplesmente troca de pagina.
+   */
+  prefixo?: string;
+  /** Endereco da mesma pagina no outro idioma. */
+  idiomaHref?: string;
 }
 
 const t = ui[Astro.props.locale];
+const prefixo = Astro.props.prefixo ?? '';
+const idiomaHref = Astro.props.idiomaHref ?? t.meta.rotaAlternativa;
 ---
 
 <button class="gatilho" type="button" aria-expanded="false" aria-controls="menu-secoes" data-abrir>
@@ -44,7 +54,7 @@ const t = ui[Astro.props.locale];
       {
         t.nav.itens.map((item, i) => (
           <li>
-            <a href={`#${item.id}`}>
+            <a href={`${prefixo}#${item.id}`}>
               <span class="painel-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <span class="painel-nome">{item.rotulo}</span>
               <svg class="painel-seta" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
@@ -57,7 +67,7 @@ const t = ui[Astro.props.locale];
     </ol>
   </nav>
 
-  <a class="painel-idioma" href={t.meta.rotaAlternativa} aria-label={t.meta.trocarIdiomaLabel}>
+  <a class="painel-idioma" href={idiomaHref} aria-label={t.meta.trocarIdiomaLabel}>
     {t.meta.trocarIdioma}
   </a>
 </dialog>

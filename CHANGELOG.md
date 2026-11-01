@@ -10,6 +10,26 @@ não a lista de commits.
 
 ## [Unreleased]
 
+## [2026.11.1] - 2026-11-01
+
+### Added
+
+- Política de privacidade em `/privacidade` e `/en/privacy`, com link no rodapé
+  das quatro páginas. Ela descreve o que o site faz de fato (nenhum cookie,
+  analytics, armazenamento no navegador ou formulário), o papel do Cloudflare
+  como hospedagem, o destino das mensagens de contato e as ferramentas pessoais
+  que entram com login do Google. A tela de consentimento OAuth do Google só
+  publica um app com página inicial e política num domínio próprio, e é esse
+  app que sincroniza o Google Drive do dono.
+
+### Changed
+
+- O `Base.astro` aceita `pagina="privacidade"`: troca título, descrição,
+  canonical e a troca de idioma para o endereço equivalente, deixa a trilha de
+  fora e aponta a navegação para as seções da landing (`/#lab`, `/en#lab`).
+- O sitemap passa a listar as quatro URLs, cada uma com a alternativa no outro
+  idioma.
+
 ## [2026.10.1] - 2026-10-03
 
 ### Added

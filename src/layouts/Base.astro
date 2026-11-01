@@ -28,14 +28,31 @@ import lockup from '../assets/brand/lockup.svg?raw';
 interface Props {
   locale: Locale;
   versao: string;
+  /**
+   * Qual pagina esta moldura envolve. A landing e o padrao; a politica de
+   * privacidade troca titulo, descricao e enderecos, e deixa a trilha de fora,
+   * porque a trilha e o indice das secoes da landing e ali elas nao existem.
+   */
+  pagina?: 'inicio' | 'privacidade';
 }
 
-const { locale, versao } = Astro.props;
+const { locale, versao, pagina = 'inicio' } = Astro.props;
 const t = ui[locale];
 const outro: Locale = locale === 'pt' ? 'en' : 'pt';
+const naLanding = pagina === 'inicio';
 
-const canonical = new URL(rota(locale), Astro.site).href;
-const alternativa = new URL(rota(outro), Astro.site).href;
+// Cada idioma tem o proprio caminho da politica (/privacidade e /en/privacy).
+const caminho = naLanding ? '' : t.privacidade.caminho;
+const caminhoOutro = naLanding ? '' : ui[outro].privacidade.caminho;
+const titulo = naLanding ? t.meta.titulo : t.privacidade.titulo;
+const descricao = naLanding ? t.meta.descricao : t.privacidade.descricao;
+
+const canonical = new URL(rota(locale, caminho), Astro.site).href;
+const alternativa = new URL(rota(outro, caminhoOutro), Astro.site).href;
+const padrao = new URL(rota('pt', naLanding ? '' : ui.pt.privacidade.caminho), Astro.site).href;
+
+// Fora da landing as ancoras apontam para as secoes dela, nao para a pagina atual.
+const prefixoSecoes = naLanding ? '' : rota(locale);
 
 /**
  * Dados estruturados. Descrevem uma pessoa que opera sob uma marca, que e o que
@@ -76,8 +93,8 @@ const servicos = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{t.meta.titulo}</title>
-    <meta name="description" content={t.meta.descricao} />
+    <title>{titulo}</title>
+    <meta name="description" content={descricao} />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#20292E" />
     <meta name="author" content="Gustavo Cateim" />
@@ -85,7 +102,7 @@ const servicos = [
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang={locale === 'pt' ? 'pt-BR' : 'en'} href={canonical} />
     <link rel="alternate" hreflang={outro === 'pt' ? 'pt-BR' : 'en'} href={alternativa} />
-    <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site).href} />
+    <link rel="alternate" hreflang="x-default" href={padrao} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -94,8 +111,8 @@ const servicos = [
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Self-Labs" />
-    <meta property="og:title" content={t.meta.titulo} />
-    <meta property="og:description" content={t.meta.descricao} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descricao} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={locale === 'pt' ? 'pt_BR' : 'en_US'} />
     <meta property="og:image" content={new URL('/og.png', Astro.site).href} />
@@ -109,7 +126,7 @@ const servicos = [
   <body>
     <a class="pular" href="#conteudo">{t.nav.pular}</a>
 
-    <Trilha secoes={t.nav.itens} locale={locale} />
+    {naLanding && <Trilha secoes={t.nav.itens} locale={locale} />}
 
     <header class="topo">
       <div class="topo-interno">
@@ -122,18 +139,18 @@ const servicos = [
             {
               t.nav.itens.map((item) => (
                 <li>
-                  <a href={`#${item.id}`}>{item.rotulo}</a>
+                  <a href={`${prefixoSecoes}#${item.id}`}>{item.rotulo}</a>
                 </li>
               ))
             }
           </ul>
         </nav>
 
-        <a class="idioma" href={rota(outro)} hreflang={outro === 'pt' ? 'pt-BR' : 'en'} aria-label={t.meta.trocarIdiomaLabel}>
+        <a class="idioma" href={rota(outro, caminhoOutro)} hreflang={outro === 'pt' ? 'pt-BR' : 'en'} aria-label={t.meta.trocarIdiomaLabel}>
           {t.meta.trocarIdioma}
         </a>
 
-        <MenuMobile locale={locale} />
+        <MenuMobile locale={locale} prefixo={prefixoSecoes} idiomaHref={rota(outro, caminhoOutro)} />
       </div>
     </header>
 
@@ -170,6 +187,7 @@ const servicos = [
             <li><a class="link-linha" href="https://github.com/CaTeIM" rel="noopener">github.com/CaTeIM</a></li>
             <li><a class="link-linha" href="https://github.com/self-labs" rel="noopener">github.com/self-labs</a></li>
             <li><a class="link-linha" href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+            <li><a class="link-linha" href={rota(locale, t.privacidade.caminho)}>{t.privacidade.rodapeLink}</a></li>
           </ul>
         </div>
       </div>

@@ -310,6 +310,73 @@ export const ui = {
       ],
     },
 
+    /**
+     * Politica de privacidade, a unica rota alem da landing. Existe porque a tela
+     * de consentimento OAuth do Google so publica um app com pagina inicial e
+     * politica num dominio proprio. Cada frase descreve o que o site faz de fato:
+     * se um dia entrar cookie, analytics ou formulario, este texto muda junto.
+     */
+    privacidade: {
+      caminho: "privacidade",
+      titulo: "Política de privacidade · Self-Labs",
+      descricao:
+        "Como o Self-Labs trata dados: um site estático sem cookies nem rastreadores, contato por e-mail e ferramentas pessoais com login do Google.",
+      rotulo: "Privacidade",
+      h1: "Política de privacidade",
+      atualizada: "Atualizada em 1 de novembro de 2026.",
+      voltar: "Voltar para a página inicial",
+      rodapeLink: "Privacidade",
+      secoes: [
+        {
+          titulo: "Este site",
+          paragrafos: [
+            "Esta página é estática. Ela não usa cookies, não roda analytics nem rastreador, não guarda nada no seu navegador e não tem formulário. Nenhum dado seu é coletado por ela.",
+          ],
+        },
+        {
+          titulo: "Hospedagem",
+          paragrafos: [
+            "O site é servido pelo Cloudflare. Para entregar as páginas e protegê-las contra abuso, o Cloudflare processa dados técnicos de cada acesso, como o endereço IP e o navegador, conforme a política de privacidade dele. O Self-Labs não usa esses dados para identificar quem visita.",
+          ],
+          links: [
+            {
+              rotulo: "Política de privacidade do Cloudflare",
+              href: "https://www.cloudflare.com/privacypolicy/",
+            },
+          ],
+        },
+        {
+          titulo: "Contato",
+          paragrafos: [
+            "Se você me escrever por e-mail ou WhatsApp, a mensagem fica na minha caixa de entrada ou no meu telefone. Ela serve só para responder a você e não é repassada a ninguém.",
+          ],
+        },
+        {
+          titulo: "Ferramentas com login do Google",
+          paragrafos: [
+            "Algumas ferramentas pessoais do Self-Labs, como a sincronização da minha pasta do Google Drive, entram com login do Google pelo app Pessoal. Elas acessam somente a conta de quem autorizou, hoje apenas a minha, rodam no meu computador e no meu servidor, e não enviam esses dados a terceiros.",
+            "O uso de informações recebidas das APIs do Google segue a Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de uso limitado. Você pode revogar o acesso quando quiser, nas permissões da sua conta Google.",
+          ],
+          links: [
+            {
+              rotulo: "Política de Dados do Usuário das APIs do Google",
+              href: "https://developers.google.com/terms/api-services-user-data-policy",
+            },
+            {
+              rotulo: "Permissões da conta Google",
+              href: "https://myaccount.google.com/permissions",
+            },
+          ],
+        },
+        {
+          titulo: "Seus direitos",
+          paragrafos: [
+            "Pela LGPD, você pode perguntar se tenho algum dado seu e pedir que ele seja corrigido ou apagado. O responsável é Gustavo Cateim, em Vitória, Espírito Santo. Basta escrever para o e-mail abaixo.",
+          ],
+        },
+      ],
+    },
+
     rodape: {
       direitos: "Self-Labs, Vitória, Espírito Santo, Brasil.",
       construido:
@@ -595,6 +662,67 @@ export const ui = {
           href: "https://github.com/self-labs",
         },
         { rotulo: "Hardware wallet shop", href: "https://store.selflabs.org" },
+      ],
+    },
+
+    privacidade: {
+      caminho: "privacy",
+      titulo: "Privacy policy · Self-Labs",
+      descricao:
+        "How Self-Labs handles data: a static site with no cookies or trackers, contact by email, and personal tools that sign in with Google.",
+      rotulo: "Privacy",
+      h1: "Privacy policy",
+      atualizada: "Last updated on 1 November 2026.",
+      voltar: "Back to the home page",
+      rodapeLink: "Privacy",
+      secoes: [
+        {
+          titulo: "This site",
+          paragrafos: [
+            "This page is static. It sets no cookies, runs no analytics or trackers, stores nothing in your browser and has no form. It collects no data about you.",
+          ],
+        },
+        {
+          titulo: "Hosting",
+          paragrafos: [
+            "The site is served by Cloudflare. To deliver the pages and protect them from abuse, Cloudflare processes technical data about each request, such as your IP address and browser, under its own privacy policy. Self-Labs does not use that data to identify visitors.",
+          ],
+          links: [
+            {
+              rotulo: "Cloudflare privacy policy",
+              href: "https://www.cloudflare.com/privacypolicy/",
+            },
+          ],
+        },
+        {
+          titulo: "Contact",
+          paragrafos: [
+            "If you write to me by email or WhatsApp, the message stays in my inbox or on my phone. It is used only to reply to you and is never passed on to anyone.",
+          ],
+        },
+        {
+          titulo: "Tools that sign in with Google",
+          paragrafos: [
+            "Some personal Self-Labs tools, such as the sync of my Google Drive folder, sign in with Google through the Pessoal app. They access only the account of whoever authorised them, which today is mine alone, run on my own computer and server, and send none of that data to third parties.",
+            "Use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. You can revoke access at any time in your Google Account permissions.",
+          ],
+          links: [
+            {
+              rotulo: "Google API Services User Data Policy",
+              href: "https://developers.google.com/terms/api-services-user-data-policy",
+            },
+            {
+              rotulo: "Google Account permissions",
+              href: "https://myaccount.google.com/permissions",
+            },
+          ],
+        },
+        {
+          titulo: "Your rights",
+          paragrafos: [
+            "Under Brazil's data protection law (LGPD) you can ask whether I hold any data about you and have it corrected or deleted. The controller is Gustavo Cateim, in Vitória, Espírito Santo. Just write to the address below.",
+          ],
+        },
       ],
     },
 
