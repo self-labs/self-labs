@@ -12,7 +12,7 @@ não a lista de commits.
 
 ## [2026.11.1] - 2026-11-01
 
-### Added
+### ✨ Added
 
 - Política de privacidade em `/privacidade` e `/en/privacy`, com link no rodapé
   das quatro páginas. Ela descreve o que o site faz de fato (nenhum cookie,
@@ -22,7 +22,7 @@ não a lista de commits.
   publica um app com página inicial e política num domínio próprio, e é esse
   app que sincroniza o Google Drive do dono.
 
-### Changed
+### 🔧 Changed
 
 - O `Base.astro` aceita `pagina="privacidade"`: troca título, descrição,
   canonical e a troca de idioma para o endereço equivalente, deixa a trilha de
@@ -32,7 +32,7 @@ não a lista de commits.
 
 ## [2026.10.1] - 2026-10-03
 
-### Added
+### ✨ Added
 
 - Três projetos novos na vitrine, todos de código aberto: **Tasmota IR**
   (integração do Home Assistant que aprende e envia infravermelho por qualquer
@@ -43,14 +43,14 @@ não a lista de commits.
   vitrine passa de 20 para 23 projetos; Origo e ai-memory, que são projetos de
   outras pessoas, continuam no fim da lista.
 
-### Changed
+### 🔧 Changed
 
 - A descrição da página, em português e em inglês, cita o novo total de
   projetos. O `CLAUDE.md` deixou de escrever o total por extenso, pelo mesmo
   motivo que o teste de contagens existe: número escrito à mão vira mentira
   sozinho.
 
-### Fixed
+### 🐛 Fixed
 
 - O contador de PRs aceitos fora de casa voltou a contar o
   [Blockstream/Jade#335](https://github.com/Blockstream/Jade/pull/335), a opção de
@@ -61,7 +61,7 @@ não a lista de commits.
 
 ## [2026.8.12] - 2026-08-31
 
-### Fixed
+### 🐛 Fixed
 
 - A Content-Security-Policy parou de recusar um script em toda visita. A zona
   roda com Bot Fight Mode, e no plano gratuito isso liga o JavaScript Detections
@@ -91,7 +91,7 @@ não a lista de commits.
 
 ## [2026.8.11] - 2026-08-30
 
-### Added
+### ✨ Added
 
 - Cabeçalhos de segurança em toda resposta, gerados por `scripts/build-headers.mjs`
   e servidos pelo Workers Static Assets através de `dist/_headers`. A
@@ -106,7 +106,7 @@ não a lista de commits.
 - `.github/dependabot.yml` para npm e github-actions, semanal e com minor e patch
   agrupados.
 
-### Changed
+### 🔧 Changed
 
 - `npm run build` passou a gerar os cabeçalhos como último passo, depois do
   `build-og`, porque a política depende do HTML já construído.
@@ -126,7 +126,7 @@ não a lista de commits.
   vaza, porque continua bastando um arquivo de código no mesmo commit para a
   revisão voltar a ser exigida.
 
-### Security
+### 🔐 Security
 
 - `scripts/fetch-stats.mjs` parou de imprimir o nome de repositórios privados.
   O repositório é público, portanto o log do Actions também é, e a execução
@@ -142,7 +142,7 @@ não a lista de commits.
 
 ## [2026.8.10] - 2026-08-30
 
-### Fixed
+### 🐛 Fixed
 
 - O passo de build do deploy voltou a rodar. A revisão anterior levou junto, sem
   querer, uma alteração que já estava na árvore de trabalho: o script `build` do
@@ -153,7 +153,7 @@ não a lista de commits.
 
 ## [2026.8.9] - 2026-08-30
 
-### Added
+### ✨ Added
 
 - `email-lockup.png`, gerado por `scripts/build-og.mjs` e publicado no apex. É o
   lockup de 440 pixels que o cabeçalho dos e-mails transacionais passa a usar.
@@ -164,14 +164,14 @@ não a lista de commits.
   fundo, e o wordmark ciano sobre branco mede 1,45:1, ou seja, desaparece.
   Medido: 440 x 146, três canais, 6,5 KB.
 
-### Changed
+### 🔧 Changed
 
 - O `.gitignore` foi reorganizado no padrão de seções comentadas da casa, com as
   regras do Wrangler distribuídas entre build e ambiente, e nenhuma linha
   anterior descartada. O verificador acusa dezessete seções e trinta e cinco
   regras, sem nenhum arquivo já versionado afetado.
 
-### Security
+### 🔐 Security
 
 - `propostas/` e `relatorios/` passaram a ser ignorados. Documentos gerados a
   partir do modelo Self-Labs carregam nome de cliente, endereço do local,
@@ -184,7 +184,7 @@ não a lista de commits.
 
 ## [2026.8.8] - 2026-08-24
 
-### Fixed
+### 🐛 Fixed
 
 - O ECG do topo voltou a pulsar sob `prefers-reduced-motion`, na metade da
   cadência. O Chromium zera a duração de toda animação declarada em CSS quando a
@@ -195,19 +195,19 @@ não a lista de commits.
 
 ## [2026.8.7] - 2026-08-24
 
-### Added
+### ✨ Added
 
 - Os pull requests aceitos em projetos de outras pessoas passaram a ser contados
   mesmo quando o merge não deixou botão, via API de busca.
 - O Home Assistant entrou na vitrine.
 
-### Changed
+### 🔧 Changed
 
 - Os números de prova passaram a contar repositórios privados. Só o público
   subestimava de forma silenciosa: de 501 commits em 13 repositórios para 1397
   em 28, dos quais 14 privados.
 
-### Fixed
+### 🐛 Fixed
 
 - O ECG foi reconstruído como varredura, com a fita parada e o cabeçote correndo
   por cima, e a máscara passou a terminar no mesmo valor que define o percurso.
@@ -220,7 +220,7 @@ não a lista de commits.
 
 ## [2026.8.6] - 2026-08-23
 
-### Changed
+### 🔧 Changed
 
 - Migração para o Astro 7, com o cache do Vite escrito fora da árvore do
   projeto no Windows. Todo diretório deste checkout carrega o atributo ReadOnly,
@@ -229,18 +229,18 @@ não a lista de commits.
 
 ## [2026.8.3] - 2026-08-21
 
-### Fixed
+### 🐛 Fixed
 
 - Formatação aplicada ao arquivo de textos da interface.
 
 ## [2026.8.2] - 2026-08-21
 
-### Added
+### ✨ Added
 
 - Navegação em telas estreitas por `<dialog>`, rolagem suave nativa e corpo de
   texto justificado a partir de 48rem.
 
-### Fixed
+### 🐛 Fixed
 
 - O filtro da vitrine passou a esconder os cartões de fato.
 - O encaixe de rolagem parou de brigar com a rolagem suave em telas de toque.
@@ -248,15 +248,16 @@ não a lista de commits.
 
 ## [2026.8.1] - 2026-08-21
 
-### Added
+### ✨ Added
 
 - Primeira publicação da página institucional: estática, bilíngue em `/` e
   `/en`, com vitrine de projetos, princípios de engenharia e quatro números
   derivados da API do GitHub. Servida pelo Cloudflare Workers Static Assets no
   apex de `selflabs.org`, sem runtime, sem banco e sem endpoint.
 
-[Unreleased]: https://github.com/self-labs/self-labs/compare/HEAD...HEAD
-[2026.10.1]: https://github.com/self-labs/self-labs/compare/d95e7ed...HEAD
+[Unreleased]: https://github.com/self-labs/self-labs/compare/c450003...HEAD
+[2026.11.1]: https://github.com/self-labs/self-labs/compare/v2026.10.1...c450003
+[2026.10.1]: https://github.com/self-labs/self-labs/compare/d95e7ed...v2026.10.1
 [2026.8.12]: https://github.com/self-labs/self-labs/compare/d9d8483...d95e7ed
 [2026.8.11]: https://github.com/self-labs/self-labs/compare/3f0315d...d9d8483
 [2026.8.10]: https://github.com/self-labs/self-labs/compare/692b481...3f0315d
